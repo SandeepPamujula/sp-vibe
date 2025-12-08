@@ -64,7 +64,7 @@ When an invoice is in **REJECTED** state, the Admin can:
 - ⏳ = In Progress
 - ⬜ = Pending
 
-**Current Status**: Working on Milestone 1.6
+**Current Status**: Working on Milestone 1.7
 
 ### Milestone 1: Project Setup & Infrastructure
 ✅ 1.1 Initialize Next.js project with TypeScript
@@ -75,7 +75,7 @@ When an invoice is in **REJECTED** state, the Admin can:
     - components/atoms (buttons, inputs, labels)
     - components/molecules (form fields, cards)
     - components/organisms (forms, lists, headers)
-⬜ 1.6 Create BE component folder structure:
+✅ 1.6 Create BE component folder structure:
     - controllers (API route handlers)
     - services (business logic)
     - db (database operations)
