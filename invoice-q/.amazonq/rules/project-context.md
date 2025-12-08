@@ -33,7 +33,7 @@ Invoice Q is an expense invoice processing application with role-based access co
 - **File Storage**: Amazon S3 (invoice attachments)
 - **Email Service**: Amazon SES (event notifications)
 - **Infrastructure**: AWS CDK
-- **Deployment**: AWS Amplify (hosting + CI/CD)
+- **Deployment**: Manual CDK deployment
 - **HTTP Client Wrapper**: Custom Axios wrapper with interceptors
 - **Logging Wrapper**: Custom Winston wrapper with structured logging
 - **Response Wrapper**: Standardized API response utility
@@ -118,20 +118,19 @@ Invoice Q is an expense invoice processing application with role-based access co
 6.1 Add Jest unit tests for core functions
 6.2 Create Storybook stories for UI components
 6.3 Implement Jest integration tests
-6.4 Set up AWS Amplify deployment:
-    - Connect GitHub repository to Amplify
-    - Configure Next.js build settings
-    - Set environment variables
+6.4 Manual CDK deployment:
+    - Build Next.js application
+    - Deploy infrastructure using CDK
+    - Configure environment variables
     - Deploy to staging environment
 6.5 Configure production deployment:
-    - Set up custom domain
-    - Configure SSL certificates
+    - Manual production deployment via CDK
+    - Configure custom domain (optional)
     - Enable monitoring and logging
-    - Deploy to production environment
-6.6 Set up CI/CD pipeline:
+<!-- 6.6 Set up CI/CD pipeline:
     - Automated testing on PR
     - Staging deployment on develop branch
-    - Production deployment on main branch
+    - Production deployment on main branch -->
 
 ## Development Guidelines
 - Build features step by step with testing
