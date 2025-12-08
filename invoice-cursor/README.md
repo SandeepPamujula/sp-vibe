@@ -12,7 +12,7 @@ Expense invoice processing application with role-based access control for admin 
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
@@ -73,4 +73,3 @@ See `.cursorrules` for detailed implementation milestones and progress tracking.
 ## License
 
 ISC
-

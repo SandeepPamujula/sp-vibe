@@ -4,20 +4,19 @@
 
 ### Invoice Lifecycle State Machine
 
-
 ### Simplified Invoice State Flow V1
 
 ```mermaid
 graph LR
     Start([Upload Invoice]) --> Draft[Draft State]
     Draft -->|Admin Submits| Under-Review[UNDER_REVIEW State]
-    
+
     Under-Review -->|Accountant<br/>Approves| Approved[APPROVED State]
     Under-Review -->|Accountant<br/>Rejects| Rejected[REJECTED State]
-    
+
     Approved --> End1([Process Complete])
     Rejected --> End2([Process Complete])
-    
+
     style Draft fill:#e1f5ff
     style Under-Review fill:#fff4e1
     style Approved fill:#e8f5e9
@@ -33,14 +32,14 @@ graph LR
 graph LR
     Start([Upload Invoice]) --> Draft[Draft State]
     Draft -->|Admin Submits| Under-Review[UNDER_REVIEW State]
-    
+
     Under-Review -->|Accountant<br/>Approves| Approved[APPROVED State]
     Under-Review -->|Accountant<br/>Rejects| Rejected[REJECTED State]
-    
+
     Rejected -->|Admin Updates<br/>Invoice| Draft
-    
+
     Approved --> End1([Process Complete])
-    
+
     style Draft fill:#e1f5ff
     style Under-Review fill:#fff4e1
     style Approved fill:#e8f5e9
@@ -50,7 +49,7 @@ graph LR
 ```
 
 **Note:** When an invoice is in REJECTED state, the Admin can:
+
 - Update invoice details
 - Upload new file
 - Resubmit for review (transitions back to Draft, then to Under-Review)
-
