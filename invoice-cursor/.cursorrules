@@ -13,6 +13,8 @@ Invoice Cursor is an expense invoice processing application with role-based acce
 ### Admin Features
 - Submit expense invoices via web portal
 - Receive email confirmation on invoice submission
+- Update rejected invoices (modify details, upload new file)
+- Resubmit rejected invoices for review
 
 ### Accountant Features
 - View list of submitted expenses with pagination
@@ -27,6 +29,31 @@ Invoice Cursor is an expense invoice processing application with role-based acce
 - Invoice submission confirmation (to admin)
 - New invoice notification (to accountant)
 - Invoice approval/rejection confirmation (to admin and accountant)
+
+## Invoice State Flow (V2 - With Resubmission)
+
+The invoice lifecycle follows a state machine with the following states and transitions:
+
+### Invoice States
+- **DRAFT**: Initial state when invoice is uploaded/created by Admin
+- **UNDER_REVIEW**: Invoice is submitted and awaiting accountant review
+- **APPROVED**: Invoice has been approved by accountant (final state)
+- **REJECTED**: Invoice has been rejected by accountant (can be resubmitted)
+
+### State Transitions
+1. **DRAFT → UNDER_REVIEW**: When Admin submits the invoice
+2. **UNDER_REVIEW → APPROVED**: When Accountant approves the invoice
+3. **UNDER_REVIEW → REJECTED**: When Accountant rejects the invoice
+4. **REJECTED → DRAFT**: When Admin updates a rejected invoice (resubmission flow)
+5. **DRAFT → UNDER_REVIEW**: When Admin resubmits the updated invoice
+
+### Resubmission Flow
+When an invoice is in **REJECTED** state, the Admin can:
+- Update invoice details (vendor, amount, description, etc.)
+- Upload a new invoice file
+- Resubmit for review (transitions back to DRAFT, then to UNDER_REVIEW)
+
+**Note**: See `WORKFLOW.md` for visual state flow diagrams.
 
 ## Implementation Milestones
 
@@ -71,7 +98,7 @@ Invoice Cursor is an expense invoice processing application with role-based acce
     - Create InvoicesTable with partition key (invoiceId) and sort key (createdAt)
     - Add Global Secondary Indexes:
       - vendor-index (for vendor name search)
-      - status-index (for status filtering: pending/approved/rejected)
+      - status-index (for status filtering: DRAFT/UNDER_REVIEW/APPROVED/REJECTED)
       - submittedBy-index (for admin's submitted invoices)
       - approvedBy-index (for accountant's processed invoices)
 ⬜ 1.15 Create S3 bucket with file validation rules:
@@ -107,6 +134,11 @@ Invoice Cursor is an expense invoice processing application with role-based acce
 ⬜ 3.5 Link S3 file path to DynamoDB record
 ⬜ 3.6 Send email confirmation to admin on submission
 ⬜ 3.7 Send email notification to accountant for new invoice
+⬜ 3.8 Implement invoice resubmission flow:
+    - Allow Admin to view rejected invoices
+    - Enable editing of rejected invoice details
+    - Allow uploading new file for rejected invoices
+    - Implement resubmit functionality (REJECTED → DRAFT → UNDER_REVIEW)
 
 ### Milestone 4: Accountant Portal - Invoice Management
 ⬜ 4.1 Build invoice list view with pagination and filtering
@@ -118,7 +150,7 @@ Invoice Cursor is an expense invoice processing application with role-based acce
 ⬜ 4.7 Send email confirmation on approval/rejection to both users
 
 ### Milestone 5: CSV Export Feature
-⬜ 5.1 Create month selector for accountant to dynamically choose month and download approved/rejected invoice details in CSV
+⬜ 5.1 Create month selector for accountant to dynamically choose month and download APPROVED/REJECTED invoice details in CSV
 ⬜ 5.2 Implement CSV download functionality with status filtering
 ⬜ 5.3 Add date range filtering
 ⬜ 5.4 Optimize query performance
@@ -218,7 +250,7 @@ infrastructure/
 **InvoicesTable:**
 - Partition Key: `invoiceId` (String)
 - Sort Key: `createdAt` (String/Number)
-- Attributes: `vendorName`, `amount`, `status` (pending/approved/rejected), `submittedBy` (admin email), `approvedBy` (accountant email), `s3FileKey`, `description`, `invoiceDate`, `rejectionReason`, `approvedAt`, `rejectedAt`
+- Attributes: `vendorName`, `amount`, `status` (DRAFT/UNDER_REVIEW/APPROVED/REJECTED), `submittedBy` (admin email), `approvedBy` (accountant email), `s3FileKey`, `description`, `invoiceDate`, `rejectionReason`, `approvedAt`, `rejectedAt`, `resubmittedAt`
 - Global Secondary Indexes:
   - `vendor-index`: Partition key `vendorName`, Sort key `createdAt` (for vendor search)
   - `status-index`: Partition key `status`, Sort key `createdAt` (for status filtering)
