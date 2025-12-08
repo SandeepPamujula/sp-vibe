@@ -1,0 +1,198 @@
+# Invoice Cursor - Cursor Rules
+
+## Project Overview
+Invoice Cursor is an expense invoice processing application with role-based access control for admin and accountant users.
+
+## Tech Stack
+- **Frontend & Backend**: Next.js with TypeScript
+- **Database**: DynamoDB (invoice metadata & expense details)
+- **File Storage**: Amazon S3 (invoice attachments)
+- **Email Service**: Amazon SES (event notifications)
+- **Infrastructure**: AWS CDK
+- **Validation**: Zod for schema validation
+- **Testing**: Jest (unit/integration tests)
+- **Component Testing**: Storybook
+- **Error Tracking**: Sentry
+- **Code Quality**: ESLint, Prettier
+
+## Architecture Patterns
+
+### Frontend Architecture
+- **UI Architecture**: Atomic Design Pattern
+  - `components/atoms/` - Basic UI elements (buttons, inputs, labels)
+  - `components/molecules/` - Composite components (form fields, cards)
+  - `components/organisms/` - Complex components (forms, lists, headers)
+- Use TypeScript for all components
+- Implement proper error boundaries
+- Follow Next.js App Router conventions
+
+### Backend Architecture
+- **Layered Architecture**:
+  - `controllers/` - API route handlers (Next.js API routes)
+  - `services/` - Business logic layer
+  - `db/` - Database operations (DynamoDB)
+- All API routes should use proper error handling
+- Implement request validation using Zod schemas
+- Use standardized API response format
+
+## Code Standards
+
+### TypeScript
+- Use strict TypeScript configuration
+- Define interfaces for all data models (User, Invoice, Response)
+- Avoid `any` types - use proper typing
+- Use type inference where appropriate
+
+### API Development
+- All API endpoints must:
+  - Validate input using Zod schemas
+  - Return standardized response format
+  - Include proper error handling
+  - Log requests/responses using Winston wrapper
+  - Implement CORS and rate limiting
+- Use custom Axios wrapper with interceptors for HTTP calls
+- Use custom DynamoDB client wrapper for database operations
+
+### Component Development
+- Use functional components with TypeScript
+- Implement proper prop types/interfaces
+- Follow React best practices (hooks, memoization where needed)
+- Create Storybook stories for all reusable components
+- Ensure accessibility (a11y) compliance
+
+### File Organization
+- Group related files together
+- Use index files for clean imports
+- Keep components small and focused
+- Separate concerns (UI, logic, data)
+
+### Error Handling
+- Use try-catch blocks for async operations
+- Implement proper error logging with Winston
+- Return user-friendly error messages
+- Use Sentry for production error tracking
+- Never expose sensitive information in errors
+
+### Security
+- Validate all user inputs
+- Implement file upload restrictions (type, size)
+- Use environment variables for sensitive data
+- Implement proper authentication/authorization
+- Sanitize data before database operations
+- Follow OWASP security best practices
+
+### Testing
+- Write unit tests for all business logic
+- Write integration tests for API endpoints
+- Create Storybook stories for UI components
+- Aim for good test coverage
+- Use descriptive test names
+
+### Database
+- Use DynamoDB best practices (partition keys, sort keys)
+- Implement proper indexing for queries
+- Handle pagination correctly
+- Maintain audit trails for all operations
+- Use transactions where appropriate
+
+### Email Notifications
+- Use Amazon SES for all email operations
+- Implement proper email templates
+- Handle email failures gracefully
+- Log all email operations
+
+## Development Guidelines
+
+### General
+- Follow minimal code principles - keep it simple
+- Write clean, readable, maintainable code
+- Comment complex logic, but prefer self-documenting code
+- Use meaningful variable and function names
+- Follow DRY (Don't Repeat Yourself) principle
+- Refactor when needed, but don't over-engineer
+
+### Git & Version Control
+- Write clear, descriptive commit messages
+- Keep commits focused and atomic
+- Use conventional commit format when possible
+
+### Environment Configuration
+- Use centralized configuration management
+- Never commit sensitive data (use environment variables)
+- Provide example env files for reference
+- Document all required environment variables
+
+### Performance
+- Optimize database queries
+- Implement proper caching where appropriate
+- Use Next.js optimization features (Image, Link, etc.)
+- Minimize bundle size
+- Implement lazy loading where beneficial
+
+## Common Patterns
+
+### API Response Format
+```typescript
+{
+  success: boolean;
+  data?: T;
+  error?: {
+    message: string;
+    code?: string;
+  };
+}
+```
+
+### Error Handling Pattern
+```typescript
+try {
+  // operation
+} catch (error) {
+  logger.error('Operation failed', { error, context });
+  return errorResponse('User-friendly message');
+}
+```
+
+### Validation Pattern
+```typescript
+const schema = z.object({ /* ... */ });
+const validatedData = schema.parse(requestBody);
+```
+
+## When Writing Code
+
+1. **Always validate inputs** - Use Zod schemas
+2. **Handle errors gracefully** - Never let errors crash the app
+3. **Log important operations** - Use structured logging
+4. **Write tests** - Especially for business logic
+5. **Follow TypeScript best practices** - Use proper types
+6. **Keep components small** - Single responsibility principle
+7. **Use environment variables** - Never hardcode config
+8. **Document complex logic** - But prefer self-documenting code
+9. **Follow Next.js conventions** - App Router patterns
+10. **Maintain consistency** - Follow existing code patterns
+
+## Code Review Checklist
+
+- [ ] TypeScript types are properly defined
+- [ ] Input validation is implemented (Zod)
+- [ ] Error handling is in place
+- [ ] Logging is implemented for important operations
+- [ ] Tests are written (unit/integration)
+- [ ] Security considerations are addressed
+- [ ] Performance is considered
+- [ ] Code follows project patterns
+- [ ] Environment variables are used (no hardcoded values)
+- [ ] Documentation is updated if needed
+
+## Questions to Ask
+
+- Is this the simplest solution?
+- Are all edge cases handled?
+- Is error handling appropriate?
+- Are inputs validated?
+- Is logging in place?
+- Are tests written?
+- Is security considered?
+- Does it follow project patterns?
+
