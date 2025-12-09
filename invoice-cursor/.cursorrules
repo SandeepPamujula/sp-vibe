@@ -15,6 +15,8 @@ Invoice Cursor is an expense invoice processing application with role-based acce
 - Receive email confirmation on invoice submission
 - Update rejected invoices (modify details, upload new file)
 - Resubmit rejected invoices for review
+- Add comments to invoices for communication with accountant (stored in unified history)
+- View unified history timeline showing both comments and audit trail entries
 
 ### Accountant Features
 - View list of submitted expenses with pagination
@@ -24,6 +26,8 @@ Invoice Cursor is an expense invoice processing application with role-based acce
 - Receive email confirmation on invoice approval/rejection
 - Search invoices by various criteria
 - Preview uploaded invoices before approval
+- Add comments to invoices for communication with admin (stored in unified history)
+- View unified history timeline showing both comments and audit trail entries
 
 ### Email Notifications
 - Invoice submission confirmation (to admin)
@@ -64,7 +68,7 @@ When an invoice is in **REJECTED** state, the Admin can:
 - ⏳ = In Progress
 - ⬜ = Pending
 
-**Current Status**: Working on Milestone 1.7
+**Current Status**: Working on Milestone 1.8
 
 ### Milestone 1: Project Setup & Infrastructure
 ✅ 1.1 Initialize Next.js project with TypeScript
@@ -79,7 +83,12 @@ When an invoice is in **REJECTED** state, the Admin can:
     - controllers (API route handlers)
     - services (business logic)
     - db (database operations)
-⬜ 1.7 Define TypeScript interfaces for data models (User, Invoice, Response)
+✅ 1.7 Define TypeScript interfaces for data models (User, Invoice, Response, InvoiceHistoryEntry)
+    - Types organized in separate files: user.ts, invoice.ts, invoice-history.ts, response.ts
+    - Supports multiple S3 files per invoice via InvoiceFileMetadata array
+    - Unified history system combining comments and audit trail in single InvoiceHistoryEntry array
+    - All transactional information (submittedBy, approvedBy, rejectionReason, timestamps) derived from history
+    - State transitions derived from entryType and chronological order
 ⬜ 1.8 Set up Zod schemas for input validation
 ⬜ 1.9 Configure environment variables and centralized config
 ⬜ 1.10 Create common library wrappers:
@@ -99,8 +108,7 @@ When an invoice is in **REJECTED** state, the Admin can:
     - Add Global Secondary Indexes:
       - vendor-index (for vendor name search)
       - status-index (for status filtering: DRAFT/UNDER_REVIEW/APPROVED/REJECTED)
-      - submittedBy-index (for admin's submitted invoices)
-      - approvedBy-index (for accountant's processed invoices)
+    - Note: submittedBy and approvedBy queries derive from history array (search for SUBMITTED/APPROVED entry types)
 ⬜ 1.15 Create S3 bucket with file validation rules:
     - Configure bucket with CORS for web uploads (support batch uploads)
     - Set up lifecycle policies for cost optimization
@@ -138,14 +146,20 @@ When an invoice is in **REJECTED** state, the Admin can:
     - Validate file size: maximum 10 MB per file
     - Validate required fields for each invoice
 ⬜ 3.4 Store invoice IDs and expense details in DynamoDB (batch processing)
-⬜ 3.5 Link S3 file paths to DynamoDB records (one-to-one mapping)
+⬜ 3.5 Link S3 file paths to DynamoDB records (multiple files per invoice via InvoiceFileMetadata array)
 ⬜ 3.6 Send email confirmation to admin on submission (include count of submitted invoices)
 ⬜ 3.7 Send email notification to accountant for new invoices (include count of new invoices)
 ⬜ 3.8 Implement invoice resubmission flow:
     - Allow Admin to view rejected invoices
     - Enable editing of rejected invoice details
-    - Allow uploading new file for rejected invoices
+    - Allow uploading new file(s) for rejected invoices
     - Implement resubmit functionality (REJECTED → DRAFT → UNDER_REVIEW)
+⬜ 3.9 Implement unified history system:
+    - Allow Admin and Accountant to add comments (COMMENT entry type) to invoices
+    - Automatically record all state transitions (CREATED, SUBMITTED, APPROVED, REJECTED, RESUBMITTED, UPDATED, FILES_ADDED, FILES_REMOVED)
+    - Support threaded conversations via parentHistoryId
+    - Store all entries chronologically in single history array
+    - Derive transactional data (submittedBy, approvedBy, rejectionReason, timestamps) from history entries
 
 ### Milestone 4: Accountant Portal - Invoice Management
 ⬜ 4.1 Build invoice list view with pagination and filtering
@@ -153,7 +167,12 @@ When an invoice is in **REJECTED** state, the Admin can:
 ⬜ 4.3 Add invoice preview capability
 ⬜ 4.4 Implement invoice approval workflow
 ⬜ 4.5 Add invoice detail view
-⬜ 4.6 Update invoice status in database with audit trail
+⬜ 4.6 Update invoice status in database with audit trail:
+    - Record state transition in unified history array with appropriate entryType
+    - Add history entry with entryType (APPROVED, REJECTED, etc.), createdBy, createdByRole, createdAt
+    - Include content field for rejection reasons or action descriptions
+    - Update status field on invoice
+    - All transactional timestamps derive from history entry createdAt
 ⬜ 4.7 Send email confirmation on approval/rejection to both users
 
 ### Milestone 5: CSV Export Feature
@@ -257,13 +276,12 @@ infrastructure/
 **InvoicesTable:**
 - Partition Key: `invoiceId` (String)
 - Sort Key: `createdAt` (String/Number)
-- Attributes: `vendorName`, `amount`, `status` (DRAFT/UNDER_REVIEW/APPROVED/REJECTED), `submittedBy` (admin email), `approvedBy` (accountant email), `s3FileKey`, `description`, `invoiceDate`, `rejectionReason`, `approvedAt`, `rejectedAt`, `resubmittedAt`
+- Attributes: `vendorName`, `amount`, `status` (DRAFT/UNDER_REVIEW/APPROVED/REJECTED), `files` (array of InvoiceFileMetadata objects supporting multiple files), `description`, `invoiceDate`, `history` (array of InvoiceHistoryEntry objects - unified comments and audit trail)
 - Global Secondary Indexes:
   - `vendor-index`: Partition key `vendorName`, Sort key `createdAt` (for vendor search)
   - `status-index`: Partition key `status`, Sort key `createdAt` (for status filtering)
-  - `submittedBy-index`: Partition key `submittedBy`, Sort key `createdAt` (for admin's invoices)
-  - `approvedBy-index`: Partition key `approvedBy`, Sort key `createdAt` (for accountant's processed invoices)
-- Purpose: Store invoice/expense records with all metadata and approval workflow
+  - Note: submittedBy and approvedBy derived from history entries (SUBMITTED and APPROVED entry types)
+- Purpose: Store invoice/expense records with unified history containing both comments and audit trail entries
 
 ### S3 Bucket Configuration
 
@@ -369,7 +387,19 @@ module.exports = {
 
 ### TypeScript
 - Use strict TypeScript configuration
-- Define interfaces for all data models (User, Invoice, Response)
+- Define interfaces for all data models (User, Invoice, Response, InvoiceHistoryEntry)
+- Organize types in separate files: `src/types/user.ts`, `src/types/invoice.ts`, `src/types/invoice-history.ts`, `src/types/response.ts`
+- Use barrel export via `src/types/index.ts` for convenient imports
+- Example imports:
+  ```typescript
+  // From barrel export
+  import { User, Invoice, InvoiceHistoryEntry, InvoiceHistoryEntryType, ApiResponse } from '@/types';
+  
+  // Direct imports (better for tree-shaking)
+  import { User, UserRole } from '@/types/user';
+  import { Invoice, InvoiceStatus } from '@/types/invoice';
+  import { InvoiceHistoryEntry, InvoiceHistoryEntryType } from '@/types/invoice-history';
+  ```
 - Avoid `any` types - use proper typing
 - Use type inference where appropriate
 
@@ -422,7 +452,13 @@ module.exports = {
 - Use DynamoDB best practices (partition keys, sort keys)
 - Implement proper indexing for queries
 - Handle pagination correctly
-- Maintain audit trails for all operations
+- Maintain unified audit trail via InvoiceHistoryEntry history array
+  - Track all state transitions (CREATED, SUBMITTED, APPROVED, REJECTED, RESUBMITTED)
+  - Track field updates, file additions/removals via UPDATED, FILES_ADDED, FILES_REMOVED entry types
+  - Include comments (COMMENT entry type) in same chronological timeline
+  - Record who performed each action (createdBy, createdByRole), when (createdAt)
+  - State transitions derived from entryType and chronological order (fromStatus/toStatus not stored)
+  - All transactional data (submittedBy, approvedBy, rejectionReason, timestamps) derived from history
 - Use transactions where appropriate
 
 ### Email Notifications
