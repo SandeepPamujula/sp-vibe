@@ -68,7 +68,7 @@ When an invoice is in **REJECTED** state, the Admin can:
 - ⏳ = In Progress
 - ⬜ = Pending
 
-**Current Status**: Working on Milestone 1.8
+**Current Status**: Working on Milestone 1.9
 
 ### Milestone 1: Project Setup & Infrastructure
 ✅ 1.1 Initialize Next.js project with TypeScript
@@ -89,7 +89,11 @@ When an invoice is in **REJECTED** state, the Admin can:
     - Unified history system combining comments and audit trail in single InvoiceHistoryEntry array
     - All transactional information (submittedBy, approvedBy, rejectionReason, timestamps) derived from history
     - State transitions derived from entryType and chronological order
-⬜ 1.8 Set up Zod schemas for input validation
+✅ 1.8 Set up Zod schemas for input validation
+    - Schemas organized in separate files: user.schema.ts, invoice.schema.ts, invoice-history.schema.ts, response.schema.ts
+    - Validation schemas for all data models and common operations
+    - Input schemas for create/update operations, file uploads, comments, and queries
+    - File validation: PDF, PNG, JPEG, HEIC only; max 10 MB per file
 ⬜ 1.9 Configure environment variables and centralized config
 ⬜ 1.10 Create common library wrappers:
     - HTTP client wrapper (Axios with interceptors)
