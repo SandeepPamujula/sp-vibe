@@ -6,8 +6,9 @@
  * - Logging wrapper (Winston with structured format)
  * - Response wrapper (standardized API responses)
  * - DB connection wrapper (DynamoDB client)
+ * - Centralized configuration management
  * - Other shared utilities
  */
 
-export {};
+export { config, type Config, validateProductionConfig } from './config';
 

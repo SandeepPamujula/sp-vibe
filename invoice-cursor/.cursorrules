@@ -94,7 +94,13 @@ When an invoice is in **REJECTED** state, the Admin can:
     - Validation schemas for all data models and common operations
     - Input schemas for create/update operations, file uploads, comments, and queries
     - File validation: PDF, PNG, JPEG, HEIC only; max 10 MB per file
-⬜ 1.9 Configure environment variables and centralized config
+✅ 1.9 Configure environment variables and centralized config
+    - Centralized config module with Zod validation (src/lib/config.ts)
+    - Type-safe access to all environment variables
+    - Validation with clear error messages for missing/invalid config
+    - Support for development, test, staging, and production environments
+    - Configuration for AWS (DynamoDB, S3, SES), Sentry, CORS, rate limiting
+    - .env.example file with all variables documented
 ⬜ 1.10 Create common library wrappers:
     - HTTP client wrapper (Axios with interceptors)
     - Logging wrapper (Winston with structured format)
@@ -552,6 +558,7 @@ const validatedData = schema.parse(requestBody);
 8. **Document complex logic** - But prefer self-documenting code
 9. **Follow Next.js conventions** - App Router patterns
 10. **Maintain consistency** - Follow existing code patterns
+11. **Update prompt history** - Document all changes in `prompts-history.md` after each prompt execution
 
 ## Code Review Checklist
 
@@ -565,6 +572,7 @@ const validatedData = schema.parse(requestBody);
 - [ ] Code follows project patterns
 - [ ] Environment variables are used (no hardcoded values)
 - [ ] Documentation is updated if needed
+- [ ] Prompt history is updated in `prompts-history.md`
 
 ## Questions to Ask
 
@@ -576,4 +584,67 @@ const validatedData = schema.parse(requestBody);
 - Are tests written?
 - Is security considered?
 - Does it follow project patterns?
+
+## Prompt History Documentation
+
+**CRITICAL**: After completing each prompt/request, you MUST update the `prompts-history.md` file to document the work done.
+
+### Prompt History Update Requirements
+
+1. **Always update prompts-history.md** after completing any task or prompt execution
+2. **Format for each prompt entry**:
+   ```markdown
+   #### Prompt N: "user prompt text"
+   **Date**: [YYYY-MM-DD HH:MM:SS] - [Context when prompt was executed]
+   **Goal**: [Brief description of what the prompt aimed to achieve]
+   
+   **Implementation**:
+   - [List of changes made]
+   - [Files created/modified]
+   - [Key decisions made]
+   - [Any relevant notes]
+   ```
+   
+   **Date format**: Use ISO 8601 format: `YYYY-MM-DD HH:MM:SS` (e.g., `2024-12-10 11:30:00`) followed by context
+
+3. **Organize by task/milestone**: Group prompts under their respective tasks (e.g., Task 1.8, Task 1.9)
+4. **Include all relevant details**:
+   - Files created or modified
+   - Dependencies added
+   - Configuration changes
+   - Design decisions
+   - Any issues encountered and how they were resolved
+5. **Update task status**: Update the Summary section at the end of prompts-history.md to reflect completed tasks
+6. **Increment prompt numbers**: Use the next sequential prompt number
+7. **Add date/time and context**: Include actual date/time in ISO 8601 format (YYYY-MM-DD HH:MM:SS) followed by context (e.g., "2024-12-10 11:30:00 - Moving to Task 1.9", "2024-12-10 14:15:00 - During Task 1.8 refinement")
+
+### Example Prompt History Entry
+
+```markdown
+### Task 1.9: Configure environment variables and centralized config
+
+#### Prompt 16: "implement task 1.9"
+**Date**: 2024-12-10 11:30:00 - Moving to Task 1.9
+**Goal**: Set up centralized configuration management with environment variable validation
+
+**Implementation**:
+- Created `src/lib/config.ts` with Zod-based environment variable validation
+- Implemented type-safe configuration object with all AWS, DynamoDB, S3, SES, Sentry settings
+- Created `.env.example` file with comprehensive documentation
+- Exported config from `src/lib/index.ts`
+- Updated `.cursorrules` to mark Task 1.9 as completed
+- Added production configuration validation with warnings
+```
+
+### When to Update Prompt History
+
+- ✅ After completing a task implementation
+- ✅ After making significant code changes
+- ✅ After updating documentation
+- ✅ After resolving issues or bugs
+- ✅ After making design decisions
+- ✅ When moving to a new task
+- ✅ After any prompt that results in code changes
+
+**Note**: If you forget to update the prompt history, add it as a follow-up action before considering the task complete.
 
