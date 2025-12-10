@@ -558,7 +558,7 @@ const validatedData = schema.parse(requestBody);
 8. **Document complex logic** - But prefer self-documenting code
 9. **Follow Next.js conventions** - App Router patterns
 10. **Maintain consistency** - Follow existing code patterns
-11. **Update prompt history** - Document all changes in `prompts-history.md` after each prompt execution
+11. **Update prompt history** - Document all changes in the appropriate milestone-specific prompt history file (`prompts-history-milestone-{N}.md`) after each prompt execution
 
 ## Code Review Checklist
 
@@ -572,7 +572,8 @@ const validatedData = schema.parse(requestBody);
 - [ ] Code follows project patterns
 - [ ] Environment variables are used (no hardcoded values)
 - [ ] Documentation is updated if needed
-- [ ] Prompt history is updated in `prompts-history.md`
+- [ ] Prompt history is updated in the appropriate milestone file (`prompts-history-milestone-{N}.md`)
+- [ ] Prompt history is updated in the appropriate milestone file (`prompts-history-milestone-{N}.md`)
 
 ## Questions to Ask
 
@@ -587,11 +588,26 @@ const validatedData = schema.parse(requestBody);
 
 ## Prompt History Documentation
 
-**CRITICAL**: After completing each prompt/request, you MUST update the `prompts-history.md` file to document the work done.
+**CRITICAL**: After completing each prompt/request, you MUST update the appropriate milestone-specific prompt history file to document the work done.
+
+### Prompt History File Structure
+
+Prompt history is organized by milestone for better readability:
+- **Main Index**: `prompts-history.md` - Overview and links to milestone-specific files
+- **Milestone Files**: `prompts-history-milestone-N.md` - Detailed prompts for each milestone (e.g., `prompts-history-milestone-1.md`)
+
+**File Organization**:
+- Each milestone has its own dedicated file: `prompts-history-milestone-{N}.md`
+- The main `prompts-history.md` serves as an index linking to all milestone files
+- Prompt numbers are sequential across all milestones
+- When starting a new milestone, create a new `prompts-history-milestone-{N}.md` file
 
 ### Prompt History Update Requirements
 
-1. **Always update prompts-history.md** after completing any task or prompt execution
+1. **Always update the appropriate milestone file** after completing any task or prompt execution
+   - Determine which milestone the prompt belongs to based on the task number
+   - Update the corresponding `prompts-history-milestone-{N}.md` file
+   - If starting a new milestone, create the new milestone file and update the index
 2. **Format for each prompt entry**:
    ```markdown
    #### Prompt N: "user prompt text"
@@ -607,16 +623,20 @@ const validatedData = schema.parse(requestBody);
    
    **Date format**: Use ISO 8601 format: `YYYY-MM-DD HH:MM:SS` (e.g., `2024-12-10 11:30:00`) followed by context
 
-3. **Organize by task/milestone**: Group prompts under their respective tasks (e.g., Task 1.8, Task 1.9)
+3. **Organize by task/milestone**: 
+   - Group prompts under their respective tasks within the milestone file (e.g., Task 1.8, Task 1.9)
+   - Each milestone file should contain all tasks and prompts for that milestone
+   - Use the format: `### Task X.Y: [Task Name]` for task sections
 4. **Include all relevant details**:
    - Files created or modified
    - Dependencies added
    - Configuration changes
    - Design decisions
    - Any issues encountered and how they were resolved
-5. **Update task status**: Update the Summary section at the end of prompts-history.md to reflect completed tasks
-6. **Increment prompt numbers**: Use the next sequential prompt number
+5. **Update task status**: Update the Summary section at the end of the milestone file to reflect completed tasks
+6. **Increment prompt numbers**: Use the next sequential prompt number across all milestones
 7. **Add date/time and context**: Include actual date/time in ISO 8601 format (YYYY-MM-DD HH:MM:SS) followed by context (e.g., "2024-12-10 11:30:00 - Moving to Task 1.9", "2024-12-10 14:15:00 - During Task 1.8 refinement")
+8. **Update index file**: When creating a new milestone file, add a link to it in the main `prompts-history.md` index file
 
 ### Example Prompt History Entry
 
@@ -635,6 +655,8 @@ const validatedData = schema.parse(requestBody);
 - Updated `.cursorrules` to mark Task 1.9 as completed
 - Added production configuration validation with warnings
 ```
+
+**Note**: This entry would be in `prompts-history-milestone-1.md` since Task 1.9 belongs to Milestone 1.
 
 ### When to Update Prompt History
 
