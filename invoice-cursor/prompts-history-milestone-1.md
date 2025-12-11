@@ -367,6 +367,47 @@ For an overview of all milestones, see [prompts-history.md](./prompts-history.md
 
 ---
 
+#### Prompt 24: "check why the prompt history is not getting updated"
+**Date**: 2025-12-11 12:14:35 - Investigating prompt history update issues
+**Goal**: Identify why prompt history files were not being updated after prompt executions
+
+**Implementation**:
+- Investigated the prompt history system and found it's a manual process with no automation
+- Identified root cause: Prompt history update relies on AI assistant manually updating files after each prompt, which is easy to forget
+- Found missing prompt entries: Test files for library wrappers were created but not documented in prompt history
+- Discovered that the last documented prompt was Prompt 23, but test files (`logger.test.ts`, `http-client.test.ts`, `db-client.test.ts`, `response.test.ts`) exist without corresponding prompt history entries
+- Documented the issue: No automated mechanism, no validation checks, and easy to forget manual updates
+
+---
+
+#### Prompt 25: "Add a pre-commit hook to warn if prompt history wasn't updated"
+**Date**: 2025-12-11 12:14:35 - After Prompt 24 investigation
+**Goal**: Create a pre-commit git hook to automatically warn when code files are modified but prompt history is not updated
+
+**Implementation**:
+- Created `.githooks/pre-commit` hook script that:
+  - Checks if code files in `invoice-cursor/` directory were modified
+  - Checks if prompt history files were also updated
+  - Warns (non-blocking) if code changed without prompt history update
+  - Provides helpful guidance on which files to update
+  - Allows user to continue or abort the commit
+- Created `scripts/install-git-hooks.sh` installation script:
+  - Finds git repository root (handles nested repository structure)
+  - Copies hooks from `.githooks/` to `.git/hooks/`
+  - Makes hooks executable
+  - Handles cases where git repo is in parent directory
+- Updated `package.json`:
+  - Added `install-hooks` script for manual hook installation
+  - Added `postinstall` script to automatically install hooks after `npm install`
+- Created `.githooks/README.md` with documentation about the git hooks
+- Updated `.cursor/docs/prompt-history.md`:
+  - Added "Pre-commit Hook" section explaining the hook functionality
+  - Documented installation process and how to bypass if needed
+- Hook is configured to only check files in `invoice-cursor/` directory to avoid false positives
+- Hook provides non-blocking warnings (doesn't prevent commits, just reminds)
+
+---
+
 ## Summary
 
 ### Milestone 1 Progress:
@@ -418,4 +459,10 @@ For an overview of all milestones, see [prompts-history.md](./prompts-history.md
 - `.cursorrules` (multiple updates)
 - `prompts-history.md` (index file)
 - `prompts-history-milestone-1.md` (this file)
+- `.cursor/docs/prompt-history.md` (updated with pre-commit hook documentation)
+
+**Git Hooks**:
+- `.githooks/pre-commit` - Pre-commit hook to warn about missing prompt history updates
+- `.githooks/README.md` - Git hooks documentation
+- `scripts/install-git-hooks.sh` - Hook installation script
 
