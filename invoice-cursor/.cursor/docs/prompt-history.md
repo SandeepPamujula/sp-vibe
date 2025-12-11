@@ -81,3 +81,45 @@ Prompt history is organized by milestone for better readability:
 - ✅ After any prompt that results in code changes
 
 **Note**: If you forget to update the prompt history, add it as a follow-up action before considering the task complete.
+
+## Pre-commit Hook
+
+A pre-commit git hook has been set up to warn you if code files were modified but prompt history was not updated. The hook:
+
+- ✅ Checks if any code files were changed in the commit
+- ✅ Checks if prompt history files were also modified
+- ⚠️ Warns (but doesn't block) if code changed without prompt history update
+- 📝 Provides helpful reminders about which files to update
+
+### Installation
+
+The git hooks are automatically installed when you run `npm install`. You can also manually install them:
+
+```bash
+npm run install-hooks
+```
+
+Or directly:
+
+```bash
+bash scripts/install-git-hooks.sh
+```
+
+### How It Works
+
+The pre-commit hook runs automatically before each commit. If it detects code changes without prompt history updates, it will:
+
+1. Display a warning message
+2. Show which prompt history files should be updated
+3. Ask if you want to continue with the commit
+4. Allow you to abort and update the history first
+
+### Bypassing the Hook
+
+If you need to bypass the hook (not recommended), you can use:
+
+```bash
+git commit --no-verify
+```
+
+However, you should still update the prompt history manually afterward.

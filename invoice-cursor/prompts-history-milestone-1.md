@@ -310,13 +310,111 @@ For an overview of all milestones, see [prompts-history.md](./prompts-history.md
 
 ---
 
+### Task 1.10: Create common library wrappers
+
+#### Prompt 22: "implement task 1.10"
+**Date**: 2025-12-10 12:00:00 - Moving to Task 1.10
+**Goal**: Create common library wrappers for HTTP client, logging, response handling, and database operations
+
+**Implementation**:
+- Installed required dependencies: `axios`, `winston`, `@aws-sdk/client-dynamodb`, `@aws-sdk/lib-dynamodb`
+- Created `src/lib/response.ts` with standardized API response helpers:
+  - `successResponse()` and `errorResponse()` functions
+  - Type guards: `isSuccessResponse()` and `isErrorResponse()`
+- Created `src/lib/logger.ts` with Winston logger wrapper:
+  - Structured logging with JSON format for production
+  - Console format with colors for development
+  - File transports for production (error.log and combined.log)
+  - Configurable log levels from environment
+- Created `src/lib/http-client.ts` with Axios wrapper:
+  - Configured Axios instance with base URL and timeout
+  - Request/response interceptors for logging
+  - Error handling with user-friendly messages
+  - Helper function `getAxiosErrorMessage()` for error extraction
+- Created `src/lib/db-client.ts` with DynamoDB client wrapper:
+  - Configured DynamoDB client with region settings
+  - Error handling helper `getDynamoDBErrorMessage()`
+  - Support for DocumentClient usage
+- Updated `src/lib/index.ts` to export all wrappers
+- All wrappers follow project standards and patterns
+
+---
+
+#### Prompt 23: "use singleton pattern for the required libraries"
+**Date**: 2025-12-10 12:10:00 - Refactoring Task 1.10 implementation
+**Goal**: Refactor library wrappers to use singleton pattern for controlled instance management
+
+**Implementation**:
+- Refactored `src/lib/logger.ts` to use singleton pattern:
+  - Created `Logger` class with private constructor
+  - Added `getInstance()` static method
+  - Exported singleton instance `logger` for convenience
+  - Maintained all Winston functionality through class methods
+- Refactored `src/lib/http-client.ts` to use singleton pattern:
+  - Created `HttpClient` class with private constructor
+  - Added `getInstance()` static method
+  - Exported singleton instance `httpClient` for convenience
+  - Added convenience methods: `get()`, `post()`, `put()`, `patch()`, `delete()`
+  - Maintained access to underlying Axios instance via `getAxiosInstance()`
+- Refactored `src/lib/db-client.ts` to use singleton pattern:
+  - Created `DbClient` class with private constructor
+  - Added `getInstance()` static method
+  - Exported singleton instance `dbClient` for convenience
+  - Maintained access to underlying DynamoDB client via `getDynamoDBClient()`
+- Updated `src/lib/index.ts` to export both singleton instances and classes
+- All wrappers now ensure only one instance exists throughout application lifecycle
+- Singleton pattern provides controlled access and prevents multiple instances
+
+---
+
+#### Prompt 24: "check why the prompt history is not getting updated"
+**Date**: 2025-12-11 12:14:35 - Investigating prompt history update issues
+**Goal**: Identify why prompt history files were not being updated after prompt executions
+
+**Implementation**:
+- Investigated the prompt history system and found it's a manual process with no automation
+- Identified root cause: Prompt history update relies on AI assistant manually updating files after each prompt, which is easy to forget
+- Found missing prompt entries: Test files for library wrappers were created but not documented in prompt history
+- Discovered that the last documented prompt was Prompt 23, but test files (`logger.test.ts`, `http-client.test.ts`, `db-client.test.ts`, `response.test.ts`) exist without corresponding prompt history entries
+- Documented the issue: No automated mechanism, no validation checks, and easy to forget manual updates
+
+---
+
+#### Prompt 25: "Add a pre-commit hook to warn if prompt history wasn't updated"
+**Date**: 2025-12-11 12:14:35 - After Prompt 24 investigation
+**Goal**: Create a pre-commit git hook to automatically warn when code files are modified but prompt history is not updated
+
+**Implementation**:
+- Created `.githooks/pre-commit` hook script that:
+  - Checks if code files in `invoice-cursor/` directory were modified
+  - Checks if prompt history files were also updated
+  - Warns (non-blocking) if code changed without prompt history update
+  - Provides helpful guidance on which files to update
+  - Allows user to continue or abort the commit
+- Created `scripts/install-git-hooks.sh` installation script:
+  - Finds git repository root (handles nested repository structure)
+  - Copies hooks from `.githooks/` to `.git/hooks/`
+  - Makes hooks executable
+  - Handles cases where git repo is in parent directory
+- Updated `package.json`:
+  - Added `install-hooks` script for manual hook installation
+  - Added `postinstall` script to automatically install hooks after `npm install`
+- Created `.githooks/README.md` with documentation about the git hooks
+- Updated `.cursor/docs/prompt-history.md`:
+  - Added "Pre-commit Hook" section explaining the hook functionality
+  - Documented installation process and how to bypass if needed
+- Hook is configured to only check files in `invoice-cursor/` directory to avoid false positives
+- Hook provides non-blocking warnings (doesn't prevent commits, just reminds)
+
+---
+
 ## Summary
 
 ### Milestone 1 Progress:
 - ✅ Task 1.7: TypeScript interfaces (with unified history system)
 - ✅ Task 1.8: Zod schemas for input validation
 - ✅ Task 1.9: Environment variables and centralized config
-- ⬜ Task 1.10: Common library wrappers
+- ✅ Task 1.10: Common library wrappers (with singleton pattern)
 - ⬜ Remaining tasks...
 
 ### Key Design Decisions:
@@ -325,6 +423,7 @@ For an overview of all milestones, see [prompts-history.md](./prompts-history.md
 3. **Simplified History Entry**: Removed fromStatus/toStatus/metadata, deriving state transitions from entryType
 4. **Centralized Constants**: File-related constants moved to dedicated constants file
 5. **Type Organization**: Types organized in separate files with barrel exports
+6. **Singleton Pattern**: All library wrappers (logger, HTTP client, DB client) use singleton pattern for controlled instance management
 
 ### Files Created/Modified:
 **Types**:
@@ -349,8 +448,21 @@ For an overview of all milestones, see [prompts-history.md](./prompts-history.md
 - `src/lib/config.ts`
 - `.env.example`
 
+**Library Wrappers**:
+- `src/lib/response.ts` - Standardized API response helpers
+- `src/lib/logger.ts` - Winston logger singleton wrapper
+- `src/lib/http-client.ts` - Axios HTTP client singleton wrapper
+- `src/lib/db-client.ts` - DynamoDB client singleton wrapper
+- `src/lib/index.ts` - Barrel export for all lib utilities
+
 **Documentation**:
 - `.cursorrules` (multiple updates)
 - `prompts-history.md` (index file)
 - `prompts-history-milestone-1.md` (this file)
+- `.cursor/docs/prompt-history.md` (updated with pre-commit hook documentation)
+
+**Git Hooks**:
+- `.githooks/pre-commit` - Pre-commit hook to warn about missing prompt history updates
+- `.githooks/README.md` - Git hooks documentation
+- `scripts/install-git-hooks.sh` - Hook installation script
 
