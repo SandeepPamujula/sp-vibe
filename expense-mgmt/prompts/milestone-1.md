@@ -6,6 +6,12 @@ Set up project foundation, local database, and core infrastructure.
 
 ---
 
+## Testing Reminder
+
+> **After each task, ask:** "Would you like me to add Jest unit tests and/or Storybook component tests for this task?"
+
+---
+
 ## Tasks
 
 | Task ID | Description | Status |
