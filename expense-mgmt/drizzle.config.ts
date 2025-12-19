@@ -5,7 +5,7 @@ export default defineConfig({
   out: './drizzle/migrations',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL || 'postgresql://expense:expense123@localhost:5432/expense_mgmt',
+    url: process.env.DATABASE_URL || 'postgresql://expense:expense123@localhost:5433/expense_mgmt',
   },
   verbose: true,
   strict: true,

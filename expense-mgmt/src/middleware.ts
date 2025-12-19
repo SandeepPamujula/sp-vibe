@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server';
  * Will be fully implemented in Milestone 2.
  */
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // For now, just pass through all requests
   // Authentication will be added in Milestone 2
   return NextResponse.next();
@@ -24,4 +24,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|api/health).*)',
   ],
 };
-
