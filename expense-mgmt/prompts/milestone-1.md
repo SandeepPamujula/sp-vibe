@@ -16,7 +16,7 @@ Set up project foundation, local database, and core infrastructure.
 
 | Task ID | Description | Status |
 |---------|-------------|--------|
-| 1.1 | Create project structure | Pending |
+| 1.1 | Create project structure | Completed |
 | 1.2 | Install dependencies | Pending |
 | 1.3 | Configure ESLint, Prettier, TypeScript | Pending |
 | 1.4 | Set up local PostgreSQL (Docker) | Pending |
@@ -58,4 +58,63 @@ Create documentation files, Cursor rules, and prompt history structure.
 - Architecture follows Atomic Design pattern for UI components
 - Layered architecture for backend (API routes, services, DB)
 - Multi-tenancy enforced via tenant_id in all queries
+
+---
+
+### Prompt 2: Create Project Structure
+
+**Date**: 2024-12-19
+**Task ID**: 1.1
+
+#### Request
+Create project structure with folders (src, lib, services, types, schemas)
+
+#### Implementation
+- Moved app/ to src/app/ with route groups: (auth), (dashboard)
+- Created src/components/{atoms, molecules, organisms} for Atomic Design
+- Created src/lib/ for utility modules
+- Created src/services/ for business logic
+- Created src/schemas/ for Zod validation schemas
+- Created src/types/ for TypeScript types
+- Created drizzle/ folder with schema.ts, seed.ts, migrations/
+- Created src/middleware.ts for auth and tenant context
+- Added placeholder pages for login, expenses, approvals, reports
+- Added health check API endpoint
+
+#### Files Created
+```
+src/
+├── app/
+│   ├── (auth)/
+│   │   ├── layout.tsx
+│   │   └── login/page.tsx
+│   ├── (dashboard)/
+│   │   ├── layout.tsx
+│   │   ├── expenses/page.tsx
+│   │   ├── approvals/page.tsx
+│   │   └── reports/page.tsx
+│   ├── api/health/route.ts
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── components/
+│   ├── atoms/index.ts
+│   ├── molecules/index.ts
+│   ├── organisms/index.ts
+│   └── index.ts
+├── lib/index.ts
+├── services/index.ts
+├── schemas/index.ts
+├── types/index.ts
+└── middleware.ts
+drizzle/
+├── schema.ts
+├── seed.ts
+└── migrations/.gitkeep
+```
+
+#### Notes
+- Route groups (auth) and (dashboard) separate public and protected routes
+- Placeholder pages indicate which milestone will implement each feature
+- Health check endpoint available at /api/health
 

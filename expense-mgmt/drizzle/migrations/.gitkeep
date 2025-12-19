@@ -1,0 +1,3 @@
+# This folder contains Drizzle migrations
+# Migrations are generated with: pnpm db:generate
+
