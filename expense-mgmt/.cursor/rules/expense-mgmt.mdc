@@ -82,6 +82,116 @@ return NextResponse.json(
 
 ---
 
+## Constants & Configuration
+
+### Separate Constants from Types
+
+Constants must be in separate files from type definitions:
+
+```
+src/
+├── constants/             # All constants here
+│   ├── api.constants.ts   # API error codes, HTTP status
+│   ├── auth.constants.ts  # Permissions, roles
+│   ├── query.constants.ts # Pagination defaults
+│   └── index.ts           # Central export
+├── types/                 # Pure type definitions (no runtime values)
+│   ├── api.types.ts
+│   ├── auth.types.ts
+│   └── index.ts
+```
+
+**Rules:**
+- Type files (`*.types.ts`) should contain ONLY types and interfaces
+- Constants (`as const` objects, default values) go in `*.constants.ts`
+- Export types from constants using `typeof` when needed
+
+```typescript
+// constants/api.constants.ts
+export const API_ERROR_CODES = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+} as const;
+
+// types/api.types.ts
+import { API_ERROR_CODES } from '@/constants';
+export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
+```
+
+### Separate DTOs by Domain
+
+DTO (Data Transfer Object) types must be organized in separate files by domain:
+
+```
+src/types/
+├── dto/                      # All DTOs in subdirectory
+│   ├── expense.dto.ts        # Expense CRUD, approval DTOs
+│   ├── attachment.dto.ts     # File upload DTOs
+│   ├── user.dto.ts           # User profile DTOs
+│   ├── report.dto.ts         # Report generation DTOs
+│   └── index.ts              # Central export
+├── api.types.ts
+├── auth.types.ts
+└── index.ts
+```
+
+**Rules:**
+- Each domain gets its own `*.dto.ts` file
+- DTOs are request/response shapes for API endpoints
+- Group related DTOs together (e.g., CreateExpenseDto, UpdateExpenseDto in expense.dto.ts)
+- Bulk action DTOs stay with their domain (BulkApproveDto in expense.dto.ts)
+
+```typescript
+// types/dto/expense.dto.ts
+export interface CreateExpenseDto {
+  vendorName: string;
+  amount: number;
+  // ...
+}
+
+export interface ApproveExpenseDto {
+  expenseId: string;
+  comments?: string;
+}
+```
+
+### Separate Entity Types by Domain
+
+Entity types (with relations) must be organized in separate files by domain:
+
+```
+src/types/
+├── entities/                  # All entity types in subdirectory
+│   ├── base.entity.ts         # Re-exports from Drizzle schema
+│   ├── user.entity.ts         # UserWithTenant, etc.
+│   ├── expense.entity.ts      # ExpenseWithRelations, ExpenseSummary, etc.
+│   ├── attachment.entity.ts   # ExpenseAttachmentSummary, etc.
+│   ├── audit.entity.ts        # AuditTrailEntry, ExpenseChangeRecord
+│   └── index.ts               # Central export
+├── dto/
+├── api.types.ts
+└── index.ts
+```
+
+**Rules:**
+- Base Drizzle types are re-exported from `base.entity.ts`
+- Extended types with relations go in domain-specific files
+- Summary/list view types stay with their domain entity
+- Statistics types stay with their domain entity
+
+```typescript
+// types/entities/expense.entity.ts
+import type { Expense, User, GlCode } from './base.entity';
+
+export interface ExpenseWithRelations extends Expense {
+  submitter: Pick<User, 'id' | 'name' | 'email'>;
+  approver?: Pick<User, 'id' | 'name' | 'email'> | null;
+  glCode?: Pick<GlCode, 'id' | 'code' | 'description'> | null;
+}
+```
+
+---
+
 ## Architecture Patterns
 
 ### File Structure
