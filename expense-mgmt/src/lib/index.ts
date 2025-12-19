@@ -32,6 +32,22 @@ export type { AppConfig } from './config';
 export { db } from './db';
 export type { Database } from './db';
 
-// Authentication
+// Authentication - Mock SSO
 export { getTestUsers, getAvailableTenants, mockSsoAuthenticate, getUserById } from './auth';
 export type { AzureAdUserProfile, TestUser, MockSsoResult } from './auth';
+
+// Authentication - JWT
+export { signToken, verifyToken, decodeToken, isTokenExpired, getTokenTTL } from './auth';
+export type { TokenUserData, VerifyTokenResult } from './auth';
+
+// Authentication - Session
+export {
+  createSession,
+  getSession,
+  clearSession,
+  refreshSession,
+  hasValidSession,
+  getTenantContext,
+  requireSession,
+} from './auth';
+export type { SessionResult } from './auth';
