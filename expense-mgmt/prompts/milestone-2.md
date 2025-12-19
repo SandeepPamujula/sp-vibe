@@ -19,7 +19,7 @@ Implement mock SSO and role-based access control.
 | 2.1 | Create mock Azure Entra SSO provider | ✅ Complete |
 | 2.2 | Implement login page with test user selection | ✅ Complete |
 | 2.3 | Create session management (JWT tokens) | ✅ Complete |
-| 2.4 | Implement tenant context middleware | Pending |
+| 2.4 | Implement tenant context middleware | ✅ Complete |
 | 2.5 | Create role-based route protection | Pending |
 | 2.6 | Create protected layout component | Pending |
 | 2.7 | Implement logout functionality | Pending |
@@ -106,4 +106,40 @@ Implement mock SSO and role-based access control.
 - SameSite=Lax for CSRF protection
 - 24-hour token expiration
 - 7-day cookie max age
+
+### Task 2.4: Implement tenant context middleware
+
+**Prompt:** "build 2.4"
+
+**Implementation:**
+
+1. Installed `jose` library for Edge-compatible JWT verification
+2. Created `src/lib/auth/jwt-edge.ts` - Edge runtime JWT utilities:
+   - `verifyTokenEdge(token)` - Verifies JWT using jose library
+   - `decodeTokenEdge(token)` - Decodes without verification
+   - `isTokenExpiredEdge(token)` - Checks expiration
+3. Created `src/lib/auth/request-context.ts` - Request context helpers:
+   - `getRequestUser()` - Extracts user from request headers
+   - `getRequestTenant()` - Extracts tenant from headers
+   - `getRequestContext()` - Gets full user+tenant context
+   - `requireRequestContext()` - Throws if not authenticated
+   - `requireTenantId()` - Gets tenant ID or throws
+4. Renamed `src/middleware.ts` → `src/proxy.ts` (Next.js 16 requirement)
+5. Implemented proxy with:
+   - Authentication check on protected routes
+   - Redirect to login for unauthenticated users
+   - Redirect to expenses for authenticated users on login page
+   - Tenant context injection via headers (x-user-id, x-tenant-id, etc.)
+
+**Route Protection:**
+| Route | Behavior |
+|-------|----------|
+| `/login` | Public, redirects to /expenses if logged in |
+| `/api/auth/*` | Public (for login flow) |
+| `/api/health` | Public (health check) |
+| `/expenses`, `/reports`, etc. | Protected, redirects to login |
+
+**Request Headers Injected:**
+- `x-user-id`, `x-user-email`, `x-user-name`, `x-user-role`
+- `x-tenant-id`, `x-tenant-slug`
 

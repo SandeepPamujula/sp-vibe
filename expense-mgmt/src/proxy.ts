@@ -1,7 +1,8 @@
 /**
- * Middleware
+ * Proxy (Next.js 16+)
  *
  * Handles authentication and tenant context for all routes.
+ * Note: In Next.js 16, middleware.ts is renamed to proxy.ts
  *
  * Features:
  * - Verifies session token on protected routes
@@ -57,7 +58,7 @@ const TENANT_HEADERS = {
   TENANT_SLUG: 'x-tenant-slug',
 } as const;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get session cookie
