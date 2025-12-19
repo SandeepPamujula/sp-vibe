@@ -20,7 +20,7 @@ Set up project foundation, local database, and core infrastructure.
 | 1.2 | Install dependencies | Completed |
 | 1.3 | Configure ESLint, Prettier, TypeScript | Completed |
 | 1.4 | Set up local PostgreSQL (Docker) | Completed |
-| 1.5 | Create Drizzle schema | Pending |
+| 1.5 | Create Drizzle schema | Completed |
 | 1.6 | Create TypeScript types | Pending |
 | 1.7 | Create Zod validation schemas | Pending |
 | 1.8 | Set up environment configuration | Pending |
@@ -286,4 +286,69 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - Health check configured with 10s interval
 - Uses port 5433 to avoid conflict with local PostgreSQL installations
 - Use `npm run docker:reset` to recreate database with fresh data
+
+---
+
+### Prompt 5: Create Drizzle Schema
+
+**Date**: 2024-12-19
+**Task ID**: 1.5
+
+#### Request
+Create Drizzle ORM schema for multi-tenant expense management system.
+
+#### Implementation
+Schema was already created in `drizzle/schema.ts` with all required tables, enums, relations, and type exports. Generated and applied database migration.
+
+#### Schema Components
+
+**Enums:**
+- `user_role` - admin, approver
+- `workflow_type` - petty, internet
+- `expense_status` - draft, submitted, approved, rejected
+- `expense_action` - created, submitted, approved, rejected, updated
+
+**Tables:**
+- `tenants` - Multi-tenancy base table with id, name, slug, is_active
+- `users` - Users scoped to tenants with email, name, role, last_login
+- `gl_codes` - General Ledger codes per tenant
+- `expenses` - Main expense records with workflow type, amounts, status
+- `expense_history` - Audit trail for expense changes (action, comments, changes JSONB)
+- `expense_attachments` - File attachments with S3 key, content type, file size
+
+**Relations:**
+- Tenant → Users (one-to-many)
+- Tenant → Expenses (one-to-many)
+- Tenant → GL Codes (one-to-many)
+- User → Expenses (submitter, approver)
+- User → Expense History (one-to-many)
+- Expense → GL Code (many-to-one)
+- Expense → History (one-to-many)
+- Expense → Attachments (one-to-many)
+
+**Type Exports:**
+- `Tenant`, `NewTenant`
+- `User`, `NewUser`
+- `GlCode`, `NewGlCode`
+- `Expense`, `NewExpense`
+- `ExpenseHistory`, `NewExpenseHistory`
+- `ExpenseAttachment`, `NewExpenseAttachment`
+- `UserRole`, `WorkflowType`, `ExpenseStatus`, `ExpenseAction`
+
+#### Files
+- `drizzle/schema.ts` - Complete Drizzle ORM schema (258 lines)
+- `drizzle/migrations/0000_powerful_pandemic.sql` - Initial migration
+
+#### Verification
+- `pnpm run db:migrate` - Migrations applied successfully ✓
+- All 6 tables created in PostgreSQL ✓
+- All 4 enums created (user_role, workflow_type, expense_status, expense_action) ✓
+- Foreign key constraints properly configured ✓
+
+#### Notes
+- All tables include `tenant_id` for row-level multi-tenant isolation
+- `onDelete: cascade` for tenant-scoped records
+- `onDelete: restrict` for user references (prevent orphaned records)
+- `onDelete: set null` for optional references (approved_by, gl_code_id)
+- JSONB field `changes` in expense_history stores field-level change diffs
 
