@@ -7,6 +7,16 @@
 import type { ExpenseAttachmentSummary } from './attachment.entity';
 import type { ExpenseHistoryEntry } from './audit.entity';
 import type { Expense, ExpenseStatus, GlCode, User, WorkflowType } from './base.entity';
+import type { ApprovalSummary, WorkflowStepSummary } from './workflow.entity';
+
+/**
+ * Workflow info for expense display
+ */
+export interface ExpenseWorkflowInfo {
+  id: string;
+  name: string;
+  code: WorkflowType;
+}
 
 /**
  * Expense with all related data
@@ -15,6 +25,9 @@ export interface ExpenseWithRelations extends Expense {
   submitter: Pick<User, 'id' | 'name' | 'email'>;
   approver?: Pick<User, 'id' | 'name' | 'email'> | null;
   glCode?: Pick<GlCode, 'id' | 'code' | 'description'> | null;
+  workflow?: ExpenseWorkflowInfo | null;
+  currentStep?: WorkflowStepSummary | null;
+  approvals: ApprovalSummary[];
   attachments: ExpenseAttachmentSummary[];
   historyCount: number;
 }
