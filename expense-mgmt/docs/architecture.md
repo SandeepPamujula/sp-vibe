@@ -205,18 +205,20 @@ stateDiagram-v2
 
 ```bash
 # Docker (recommended)
+docker compose up -d
+# or manually:
 docker run --name expense-db \
   -e POSTGRES_USER=expense \
   -e POSTGRES_PASSWORD=expense123 \
   -e POSTGRES_DB=expense_mgmt \
-  -p 5432:5432 \
+  -p 5433:5432 \
   -d postgres:16
 ```
 
 ### Environment Variables (.env.local)
 
 ```env
-DATABASE_URL=postgresql://expense:expense123@localhost:5432/expense_mgmt
+DATABASE_URL=postgresql://expense:expense123@localhost:5433/expense_mgmt
 JWT_SECRET=your-jwt-secret-key-here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
