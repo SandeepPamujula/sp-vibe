@@ -22,7 +22,7 @@ Set up project foundation, local database, and core infrastructure.
 | 1.4 | Set up local PostgreSQL (Docker) | Completed |
 | 1.5 | Create Drizzle schema | Completed |
 | 1.6 | Create TypeScript types | Completed |
-| 1.7 | Create Zod validation schemas | Pending |
+| 1.7 | Create Zod validation schemas | Completed |
 | 1.8 | Set up environment configuration | Pending |
 | 1.9 | Create database seed script | Pending |
 | 1.10 | Create Cursor rules file | Completed |
@@ -417,4 +417,70 @@ Created comprehensive TypeScript types organized into separate files by domain:
 - Entity types re-export Drizzle schema types for consistency
 - DTOs separate API input from database models
 - Query types support complex filtering and pagination
+
+---
+
+### Prompt 7: Create Zod Validation Schemas
+
+**Date**: 2024-12-19
+**Task ID**: 1.7
+
+#### Request
+Create Zod validation schemas for all API inputs.
+
+#### Implementation
+Created comprehensive Zod validation schemas organized by domain.
+
+**Files Created:**
+- `src/schemas/expense.schema.ts` - Expense CRUD and approval schemas
+- `src/schemas/attachment.schema.ts` - File upload validation schemas
+- `src/schemas/query.schema.ts` - Pagination, sorting, and filter schemas
+- `src/schemas/report.schema.ts` - Report generation schemas
+- `src/schemas/auth.schema.ts` - Authentication schemas
+- `src/schemas/index.ts` - Central export
+
+#### Schema Categories
+
+**Expense Schemas:**
+- `workflowTypeSchema`, `expenseStatusSchema`, `expenseActionSchema` - Enums
+- `createExpenseSchema` - Create expense with validation
+- `updateExpenseSchema` - Partial update with nullable fields
+- `submitExpenseSchema`, `approveExpenseSchema`, `rejectExpenseSchema` - Actions
+- `bulkApproveSchema`, `bulkRejectSchema` - Bulk operations (max 50)
+
+**Attachment Schemas:**
+- `fileMetadataSchema` - File name, content type, size validation
+- `uploadAttachmentSchema` - Upload request with expense ID
+- `deleteAttachmentSchema` - Delete by attachment ID
+- `multipleFilesSchema` - Array validation (max 5 files)
+
+**Query Schemas:**
+- `paginationSchema` - Page and limit with defaults
+- `expenseListQuerySchema` - Full expense filtering with date range validation
+- `userListQuerySchema`, `glCodeListQuerySchema` - Entity queries
+- `auditTrailQuerySchema` - Audit trail with action filter
+- `searchQuerySchema` - Global search (min 2 chars)
+
+**Report Schemas:**
+- `reportTypeSchema`, `reportFormatSchema`, `reportGroupBySchema` - Enums
+- `generateReportSchema` - Report generation with date validation (max 1 year)
+- `reportQuerySchema` - Report data query
+
+**Auth Schemas:**
+- `loginSchema` - Email and tenant slug validation
+- `tenantSlugSchema` - Slug format validation (lowercase alphanumeric)
+- `updateProfileSchema` - Profile update
+- `uuidParamSchema` - Generic UUID path parameter
+
+#### Features
+- All schemas export inferred TypeScript types (e.g., `CreateExpenseInput`)
+- Date validation with YYYY-MM-DD format
+- Date range validation (start <= end)
+- UUID validation for IDs
+- Sensible defaults from constants
+- Custom error messages for all validations
+
+#### Verification
+- `pnpm tsc --noEmit` - Passes ✓
+- `pnpm lint` - Passes (no new errors) ✓
 
