@@ -17,7 +17,7 @@ Set up project foundation, local database, and core infrastructure.
 | Task ID | Description | Status |
 |---------|-------------|--------|
 | 1.1 | Create project structure | Completed |
-| 1.2 | Install dependencies | Pending |
+| 1.2 | Install dependencies | Completed |
 | 1.3 | Configure ESLint, Prettier, TypeScript | Pending |
 | 1.4 | Set up local PostgreSQL (Docker) | Pending |
 | 1.5 | Create Drizzle schema | Pending |
@@ -113,8 +113,72 @@ drizzle/
 └── migrations/.gitkeep
 ```
 
+#### Tests Added
+- `src/app/api/health/route.test.ts` - Health check API unit tests
+
 #### Notes
 - Route groups (auth) and (dashboard) separate public and protected routes
 - Placeholder pages indicate which milestone will implement each feature
 - Health check endpoint available at /api/health
+- Tests will run after Jest is configured in Task 1.2
+
+---
+
+### Prompt 3: Install Dependencies
+
+**Date**: 2024-12-19
+**Task ID**: 1.2
+
+#### Request
+Install dependencies (zod, drizzle-orm, drizzle-kit, postgres, jest, etc.)
+
+#### Implementation
+Installed all required dependencies for the expense management system.
+
+#### Dependencies Installed
+
+**Production:**
+- `drizzle-orm` - PostgreSQL ORM
+- `postgres` - PostgreSQL driver
+- `zod` - Schema validation
+- `jsonwebtoken` - JWT handling
+- `uuid` - UUID generation
+- `exceljs` - Excel report generation
+- `@aws-sdk/client-s3` - S3 file uploads
+- `@aws-sdk/client-ses` - Email notifications
+- `@aws-sdk/s3-request-presigner` - S3 presigned URLs
+
+**Development:**
+- `drizzle-kit` - Drizzle migrations and studio
+- `jest`, `ts-jest`, `@types/jest` - Testing framework
+- `@testing-library/react`, `@testing-library/jest-dom` - React testing
+- `jest-environment-jsdom` - Browser environment for tests
+- `tsx` - TypeScript execution for scripts
+- `prettier` - Code formatting
+- `@types/jsonwebtoken` - Type definitions
+
+#### Files Created/Updated
+- `package.json` - Updated with scripts and dependencies
+- `jest.config.js` - Jest configuration
+- `jest.setup.js` - Jest setup with mocks
+- `drizzle.config.ts` - Drizzle Kit configuration
+
+#### Scripts Added
+```json
+{
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:coverage": "jest --coverage",
+  "db:generate": "drizzle-kit generate",
+  "db:migrate": "drizzle-kit migrate",
+  "db:push": "drizzle-kit push",
+  "db:studio": "drizzle-kit studio",
+  "db:seed": "tsx drizzle/seed.ts",
+  "format": "prettier --write ...",
+  "format:check": "prettier --check ..."
+}
+```
+
+#### Verification
+- Health check API test passes: 2 tests, 0 failures
 
