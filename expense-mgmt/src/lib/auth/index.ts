@@ -59,3 +59,15 @@ export {
   type RequestTenant,
   type RequestContext,
 } from './request-context';
+
+// Permissions (Role-based access control)
+export {
+  hasPermission,
+  hasAllPermissions,
+  hasAnyPermission,
+  getRolePermissions,
+  canAccessRoute,
+  getNavigationForRole,
+  ROUTE_PERMISSIONS,
+  type RoutePermission,
+} from './permissions';

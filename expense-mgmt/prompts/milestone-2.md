@@ -20,10 +20,10 @@ Implement mock SSO and role-based access control.
 | 2.2 | Implement login page with test user selection | ✅ Complete |
 | 2.3 | Create session management (JWT tokens) | ✅ Complete |
 | 2.4 | Implement tenant context middleware | ✅ Complete |
-| 2.5 | Create role-based route protection | Pending |
-| 2.6 | Create protected layout component | Pending |
-| 2.7 | Implement logout functionality | Pending |
-| 2.8 | Write authentication tests | Pending |
+| 2.5 | Create role-based route protection | ✅ Complete |
+| 2.6 | Create protected layout component | ✅ Complete |
+| 2.7 | Implement logout functionality | ✅ Complete |
+| 2.8 | Write authentication tests | ✅ Complete |
 
 ---
 
@@ -142,4 +142,85 @@ Implement mock SSO and role-based access control.
 **Request Headers Injected:**
 - `x-user-id`, `x-user-email`, `x-user-name`, `x-user-role`
 - `x-tenant-id`, `x-tenant-slug`
+
+### Task 2.5: Create role-based route protection
+
+**Prompt:** "build 2.5,2.6,2.7,2.8"
+
+**Implementation:**
+
+1. Created `src/lib/auth/permissions.ts` - Permission utilities:
+   - `hasPermission(role, permission)` - Check single permission
+   - `hasAllPermissions(role, permissions)` - Check all permissions
+   - `hasAnyPermission(role, permissions)` - Check any permission
+   - `getRolePermissions(role)` - Get all permissions for role
+   - `canAccessRoute(role, path)` - Check route access
+   - `getNavigationForRole(role)` - Get allowed nav items
+2. Updated `src/proxy.ts` with role-based checks:
+   - Added `ROLE_REQUIRED_ROUTES` configuration
+   - Approvers can access `/approvals` and `/reports`
+   - Admins can only access `/expenses`
+   - Unauthorized role access redirects to `/expenses`
+
+**Role Access Matrix:**
+| Route | Admin | Approver |
+|-------|-------|----------|
+| `/expenses` | ✅ | ✅ |
+| `/approvals` | ❌ | ✅ |
+| `/reports` | ❌ | ✅ |
+
+### Task 2.6: Create protected layout component
+
+**Implementation:**
+
+1. Created new UI components:
+   - `src/components/atoms/Avatar.tsx` - User avatar with initials
+   - `src/components/atoms/NavLink.tsx` - Navigation link with active state
+   - `src/components/atoms/Icon.tsx` - SVG icons (Receipt, CheckCircle, etc.)
+   - `src/components/organisms/Sidebar.tsx` - Navigation sidebar
+   - `src/components/organisms/Header.tsx` - Top header with user dropdown
+2. Created `src/app/(dashboard)/DashboardShell.tsx` - Client wrapper
+3. Updated `src/app/(dashboard)/layout.tsx` - Server component with auth check
+
+**Layout Features:**
+- Fixed sidebar with navigation (role-filtered)
+- ExpenseFlow branding with tenant name
+- Top header with user profile dropdown
+- Avatar with color based on user name
+- Role badge display
+- Mobile-responsive design (desktop-first)
+
+### Task 2.7: Implement logout functionality
+
+**Implementation:**
+
+1. Created `src/components/molecules/LogoutButton.tsx`:
+   - Calls `DELETE /api/auth/session`
+   - Shows loading state ("Signing out...")
+   - Redirects to `/login` on success
+   - Handles errors gracefully
+2. Integrated into Sidebar and Header dropdown
+3. Updated `src/proxy.ts` to allow public access to `/api/auth/session`
+
+### Task 2.8: Write authentication tests
+
+**Implementation:**
+
+1. Created `src/lib/auth/__tests__/jwt.test.ts`:
+   - Tests for `signToken`, `verifyToken`, `decodeToken`
+   - Tests for `isTokenExpired`, `getTokenTTL`
+   - 11 test cases, all passing
+2. Created `src/lib/auth/__tests__/permissions.test.ts`:
+   - Tests for permission checking functions
+   - Tests for route access validation
+   - Tests for navigation filtering
+   - 22 test cases, all passing
+3. Updated `jest.setup.js` with test environment variables
+
+**Test Results:**
+```
+JWT Utilities: 11 passed
+Permission Utilities: 22 passed
+Total: 33 tests passing
+```
 

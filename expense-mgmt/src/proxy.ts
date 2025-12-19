@@ -14,8 +14,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { SESSION_CONFIG } from '@/constants/auth.constants';
+import { SESSION_CONFIG, ROLE_PERMISSIONS } from '@/constants/auth.constants';
 import { verifyTokenEdge } from '@/lib/auth/jwt-edge';
+import type { PermissionAction } from '@/types/auth.types';
+
+import type { UserRole } from '../drizzle/schema';
 
 /**
  * Public routes that don't require authentication
@@ -25,6 +28,7 @@ const PUBLIC_ROUTES = [
   '/api/auth/tenants',
   '/api/auth/users',
   '/api/auth/mock-sso',
+  '/api/auth/session', // Session endpoint for logout
   '/api/health',
 ];
 
@@ -32,6 +36,19 @@ const PUBLIC_ROUTES = [
  * Routes that should redirect to dashboard if already authenticated
  */
 const AUTH_ROUTES = ['/login'];
+
+/**
+ * Route-level role requirements
+ * Routes not listed here are accessible to any authenticated user
+ */
+const ROLE_REQUIRED_ROUTES: {
+  path: string;
+  roles: UserRole[];
+  permissions?: PermissionAction[];
+}[] = [
+  { path: '/approvals', roles: ['approver'], permissions: ['expense:approve'] },
+  { path: '/reports', roles: ['approver'], permissions: ['report:generate'] },
+];
 
 /**
  * Check if a path matches any of the patterns
@@ -44,6 +61,48 @@ function matchesPath(pathname: string, patterns: string[]): boolean {
     if (pattern.endsWith('*') && pathname.startsWith(pattern.slice(0, -1))) return true;
     return false;
   });
+}
+
+/**
+ * Check if user role has required permission
+ */
+function hasPermission(role: UserRole, permission: PermissionAction): boolean {
+  const permissions = ROLE_PERMISSIONS[role] ?? [];
+  return permissions.includes(permission);
+}
+
+/**
+ * Check if user can access a protected route based on role requirements
+ */
+function checkRouteAccess(
+  pathname: string,
+  role: UserRole
+): { allowed: boolean; redirectTo?: string } {
+  const routeConfig = ROLE_REQUIRED_ROUTES.find((r) => {
+    if (pathname === r.path) return true;
+    if (pathname.startsWith(r.path + '/')) return true;
+    return false;
+  });
+
+  // No specific role requirement - allow access
+  if (!routeConfig) {
+    return { allowed: true };
+  }
+
+  // Check if user's role is allowed
+  if (!routeConfig.roles.includes(role)) {
+    return { allowed: false, redirectTo: '/expenses' };
+  }
+
+  // Check if user has required permissions
+  if (routeConfig.permissions) {
+    const hasAllPermissions = routeConfig.permissions.every((p) => hasPermission(role, p));
+    if (!hasAllPermissions) {
+      return { allowed: false, redirectTo: '/expenses' };
+    }
+  }
+
+  return { allowed: true };
 }
 
 /**
@@ -95,6 +154,14 @@ export async function proxy(request: NextRequest) {
     // Add redirect parameter to return after login
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Check role-based route access
+  if (authToken) {
+    const access = checkRouteAccess(pathname, authToken.role as UserRole);
+    if (!access.allowed && access.redirectTo) {
+      return NextResponse.redirect(new URL(access.redirectTo, request.url));
+    }
   }
 
   // For authenticated requests, inject tenant context into headers

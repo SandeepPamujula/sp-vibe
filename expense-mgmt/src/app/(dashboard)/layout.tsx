@@ -1,15 +1,34 @@
 /**
  * Dashboard Layout
  *
- * Layout for protected dashboard pages.
- * Requires authentication and tenant context.
+ * Protected layout for dashboard pages.
+ * Requires authentication and displays navigation.
  */
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+import { redirect } from 'next/navigation';
+
+import { getSession } from '@/lib/auth/session';
+
+import { DashboardShell } from './DashboardShell';
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // Get session (server-side)
+  const { session } = await getSession();
+
+  // Redirect to login if not authenticated
+  // Note: This is a backup check - the proxy should handle this too
+  if (!session) {
+    redirect('/login');
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      {/* Header will be added in Milestone 2 */}
-      <main className="container mx-auto px-4 py-8">{children}</main>
-    </div>
+    <DashboardShell
+      userName={session.user.name}
+      userEmail={session.user.email}
+      userRole={session.user.role}
+      tenantSlug={session.tenant.tenantSlug}
+    >
+      {children}
+    </DashboardShell>
   );
 }
