@@ -1,9 +1,20 @@
 /**
- * Zod validation schemas
+ * Zod Validation Schemas
  *
- * - expense.schema.ts: Expense validation schemas
- * - user.schema.ts: User validation schemas
- * - report.schema.ts: Report filter schemas
+ * Central export for all validation schemas.
  */
 
-export {};
+// Expense Schemas
+export * from './expense.schema';
+
+// Attachment Schemas
+export * from './attachment.schema';
+
+// Query & Pagination Schemas
+export * from './query.schema';
+
+// Report Schemas
+export * from './report.schema';
+
+// Authentication Schemas
+export * from './auth.schema';
