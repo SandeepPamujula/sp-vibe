@@ -51,3 +51,19 @@ export {
   requireSession,
 } from './auth';
 export type { SessionResult } from './auth';
+
+// Authentication - JWT Edge (for middleware)
+export { verifyTokenEdge, decodeTokenEdge, isTokenExpiredEdge } from './auth';
+export type { EdgeVerifyResult } from './auth';
+
+// Authentication - Request Context (for API routes)
+export {
+  getRequestUser,
+  getRequestTenant,
+  getRequestContext,
+  requireRequestContext,
+  getRequestTenantId,
+  requireTenantId,
+  TENANT_HEADERS,
+} from './auth';
+export type { RequestUser, RequestTenant, RequestContext } from './auth';

@@ -15,7 +15,7 @@ export {
   type MockSsoResult,
 } from './mock-sso';
 
-// JWT Utilities
+// JWT Utilities (Node.js - for API routes)
 export {
   signToken,
   verifyToken,
@@ -25,6 +25,14 @@ export {
   type TokenUserData,
   type VerifyTokenResult,
 } from './jwt';
+
+// JWT Utilities (Edge - for middleware)
+export {
+  verifyTokenEdge,
+  decodeTokenEdge,
+  isTokenExpiredEdge,
+  type EdgeVerifyResult,
+} from './jwt-edge';
 
 // Session Management
 export {
@@ -37,3 +45,17 @@ export {
   requireSession,
   type SessionResult,
 } from './session';
+
+// Request Context (for API routes)
+export {
+  getRequestUser,
+  getRequestTenant,
+  getRequestContext,
+  requireRequestContext,
+  getRequestTenantId,
+  requireTenantId,
+  TENANT_HEADERS,
+  type RequestUser,
+  type RequestTenant,
+  type RequestContext,
+} from './request-context';
