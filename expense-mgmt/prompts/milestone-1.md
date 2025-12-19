@@ -23,7 +23,7 @@ Set up project foundation, local database, and core infrastructure.
 | 1.5 | Create Drizzle schema | Completed |
 | 1.6 | Create TypeScript types | Completed |
 | 1.7 | Create Zod validation schemas | Completed |
-| 1.8 | Set up environment configuration | Pending |
+| 1.8 | Set up environment configuration | Completed |
 | 1.9 | Create database seed script | Pending |
 | 1.10 | Create Cursor rules file | Completed |
 | 1.11 | Create documentation files | Completed |
@@ -483,4 +483,78 @@ Created comprehensive Zod validation schemas organized by domain.
 #### Verification
 - `pnpm tsc --noEmit` - Passes ✓
 - `pnpm lint` - Passes (no new errors) ✓
+
+---
+
+### Prompt 8: Set Up Environment Configuration
+
+**Date**: 2024-12-19
+**Task ID**: 1.8
+
+#### Request
+Set up environment configuration with Zod validation.
+
+#### Implementation
+Created a type-safe environment configuration system using Zod for validation.
+
+**Files Created:**
+- `src/lib/env.ts` - Zod-validated environment schema with fail-fast validation
+- `src/lib/config.ts` - Application configuration derived from validated env vars
+- `.env.example` - Environment variable template with documentation
+
+**Files Updated:**
+- `src/lib/index.ts` - Exports for config utilities
+
+#### Environment Schema
+
+**Required Variables:**
+- `DATABASE_URL` - PostgreSQL connection URL (validated format)
+- `JWT_SECRET` - JWT signing secret (min 32 chars for security)
+- `NEXT_PUBLIC_APP_URL` - Public app URL (client-side)
+
+**Optional Variables:**
+- `NODE_ENV` - Environment mode (development/production/test, default: development)
+- `AWS_REGION` - AWS region for S3/SES
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` - AWS credentials
+- `S3_BUCKET` - S3 bucket for attachments
+- `SES_FROM_EMAIL` - Verified SES sender email
+
+#### Configuration Modules
+
+**env.ts:**
+- `env` - Validated environment variables object
+- `isDevelopment`, `isProduction`, `isTest` - Environment checks
+
+**config.ts:**
+- `databaseConfig` - Database URL, logging, pool settings
+- `authConfig` - JWT secret with settings from constants
+- `awsConfig` - AWS credentials with isConfigured flag
+- `s3Config` - S3 bucket with file upload settings
+- `emailConfig` - SES sender email
+- `urlConfig` - Application URLs
+- `features` - Feature flags based on environment
+- `config` - Combined configuration object
+
+#### Usage Examples
+
+```typescript
+import { env, config, isDevelopment } from '@/lib';
+
+// Direct env access
+const dbUrl = env.DATABASE_URL;
+
+// Structured config access
+const jwtSecret = config.auth.jwtSecret;
+const maxFileSize = config.s3.maxFileSize;
+
+// Feature flags
+if (config.features.s3Uploads) {
+  // S3 is properly configured
+}
+```
+
+#### Verification
+- `pnpm tsc --noEmit` - Passes ✓
+- `pnpm lint` - Passes ✓
+- `.env.local` exists with valid configuration ✓
 
