@@ -24,7 +24,7 @@ Set up project foundation, local database, and core infrastructure.
 | 1.6 | Create TypeScript types | Completed |
 | 1.7 | Create Zod validation schemas | Completed |
 | 1.8 | Set up environment configuration | Completed |
-| 1.9 | Create database seed script | Pending |
+| 1.9 | Create database seed script | Completed |
 | 1.10 | Create Cursor rules file | Completed |
 | 1.11 | Create documentation files | Completed |
 
@@ -557,4 +557,55 @@ if (config.features.s3Uploads) {
 - `pnpm tsc --noEmit` - Passes ✓
 - `pnpm lint` - Passes ✓
 - `.env.local` exists with valid configuration ✓
+
+---
+
+### Prompt 9: Create Database Seed Script
+
+**Date**: 2024-12-19
+**Task ID**: 1.9
+
+#### Request
+Create database seed script with test data for development.
+
+#### Implementation
+Created comprehensive seed script with workflow-based approval system.
+
+**File Created:**
+- `drizzle/seed.ts` - Database seed script
+
+**Schema Updates:**
+- Added `expense_workflows` table - Configurable workflows per tenant
+- Added `workflow_steps` table - Approval steps (single-level, extensible to multi-level)
+- Added `expense_approvals` table - Tracks approval decisions
+- Added `workflow_id`, `current_step_id` to `expenses` table
+- Added `approval_status` enum
+
+**Migration:**
+- `drizzle/migrations/0001_bouncy_phantom_reporter.sql`
+
+#### Seed Data (Single Tenant: Acme Corporation)
+
+| Entity | Count | Details |
+|--------|-------|---------|
+| Tenant | 1 | Acme Corporation (acme) |
+| Users | 2 | Sandeep Admin, SP Approver |
+| GL Codes | 5 | Office, Travel, Meals, Software, Equipment |
+| Workflows | 2 | Petty Cash, Internet Expense |
+| Workflow Steps | 2 | 1 step per workflow (single-level approval) |
+| Expenses | 4 | draft, submitted, approved, rejected |
+| Approvals | 3 | Approval records for submitted expenses |
+| History | 8 | Audit trail entries |
+
+#### Features
+- Workflow-based approval (extensible to multi-level)
+- Single tenant for focused testing
+- Idempotent (clears data before seeding)
+- Readable UUIDs for debugging
+- Comprehensive summary output
+
+#### Verification
+- `pnpm db:seed` - Executes successfully ✓
+- All tables populated ✓
+- Foreign key relationships intact ✓
 

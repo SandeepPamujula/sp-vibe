@@ -31,6 +31,11 @@ export const expenseActionSchema = z.enum([
   'updated',
 ]);
 
+/**
+ * Approval status enum schema
+ */
+export const approvalStatusSchema = z.enum(['pending', 'approved', 'rejected', 'skipped']);
+
 // ============================================================================
 // Create & Update Schemas
 // ============================================================================
@@ -168,3 +173,4 @@ export type ApproveExpenseInput = z.infer<typeof approveExpenseSchema>;
 export type RejectExpenseInput = z.infer<typeof rejectExpenseSchema>;
 export type BulkApproveInput = z.infer<typeof bulkApproveSchema>;
 export type BulkRejectInput = z.infer<typeof bulkRejectSchema>;
+export type ApprovalStatusInput = z.infer<typeof approvalStatusSchema>;

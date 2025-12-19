@@ -43,6 +43,13 @@ export const expenseActionEnum = pgEnum('expense_action', [
   'updated',
 ]);
 
+export const approvalStatusEnum = pgEnum('approval_status', [
+  'pending',
+  'approved',
+  'rejected',
+  'skipped', // For auto-skip based on amount thresholds
+]);
+
 // ============================================================================
 // Tables
 // ============================================================================
@@ -90,6 +97,47 @@ export const glCodes = pgTable('gl_codes', {
 });
 
 /**
+ * Expense Workflows table - Configurable approval workflows per tenant
+ *
+ * Each tenant has workflows (petty, internet, etc.) with configurable steps.
+ * Currently configured for single-level approval, extensible to multi-level.
+ */
+export const expenseWorkflows = pgTable('expense_workflows', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 100 }).notNull(), // e.g., "Petty Cash", "Internet Expense"
+  code: workflowTypeEnum('code').notNull(), // petty | internet
+  description: text('description'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Workflow Steps table - Approval levels within a workflow
+ *
+ * Defines the sequence of approvals required.
+ * For single-level: one step with isFinal=true
+ * For multi-level: multiple steps with stepOrder 1, 2, 3...
+ */
+export const workflowSteps = pgTable('workflow_steps', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workflowId: uuid('workflow_id')
+    .notNull()
+    .references(() => expenseWorkflows.id, { onDelete: 'cascade' }),
+  stepOrder: integer('step_order').notNull().default(1), // 1 for single-level
+  name: varchar('name', { length: 100 }).notNull(), // e.g., "Approver Review"
+  description: text('description'),
+  approverRole: userRoleEnum('approver_role').notNull(), // Role required to approve
+  amountThreshold: decimal('amount_threshold', { precision: 12, scale: 2 }), // Optional: skip if below
+  isFinal: boolean('is_final').notNull().default(true), // true for single-level
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * Expenses table - Main expense records
  */
 export const expenses = pgTable('expenses', {
@@ -101,6 +149,10 @@ export const expenses = pgTable('expenses', {
     .notNull()
     .references(() => users.id, { onDelete: 'restrict' }),
   approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
+  workflowId: uuid('workflow_id').references(() => expenseWorkflows.id, { onDelete: 'set null' }),
+  currentStepId: uuid('current_step_id').references(() => workflowSteps.id, {
+    onDelete: 'set null',
+  }),
   workflowType: workflowTypeEnum('workflow_type').notNull().default('petty'),
   expenseDate: date('expense_date').notNull(),
   invoiceNumber: varchar('invoice_number', { length: 100 }),
@@ -112,6 +164,28 @@ export const expenses = pgTable('expenses', {
   status: expenseStatusEnum('status').notNull().default('draft'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Expense Approvals table - Tracks each approval decision
+ *
+ * One record per workflow step for each expense.
+ * For single-level: one approval record per expense.
+ * For multi-level: one record per step in the workflow.
+ */
+export const expenseApprovals = pgTable('expense_approvals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  expenseId: uuid('expense_id')
+    .notNull()
+    .references(() => expenses.id, { onDelete: 'cascade' }),
+  workflowStepId: uuid('workflow_step_id')
+    .notNull()
+    .references(() => workflowSteps.id, { onDelete: 'restrict' }),
+  approverId: uuid('approver_id').references(() => users.id, { onDelete: 'set null' }),
+  status: approvalStatusEnum('status').notNull().default('pending'),
+  comments: text('comments'),
+  actedAt: timestamp('acted_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 /**
@@ -157,6 +231,7 @@ export const tenantsRelations = relations(tenants, ({ many }) => ({
   users: many(users),
   expenses: many(expenses),
   glCodes: many(glCodes),
+  workflows: many(expenseWorkflows),
 }));
 
 /**
@@ -170,6 +245,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   submittedExpenses: many(expenses, { relationName: 'submitter' }),
   approvedExpenses: many(expenses, { relationName: 'approver' }),
   expenseHistoryEntries: many(expenseHistory),
+  expenseApprovals: many(expenseApprovals),
 }));
 
 /**
@@ -181,6 +257,30 @@ export const glCodesRelations = relations(glCodes, ({ one, many }) => ({
     references: [tenants.id],
   }),
   expenses: many(expenses),
+}));
+
+/**
+ * Expense Workflow relations
+ */
+export const expenseWorkflowsRelations = relations(expenseWorkflows, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [expenseWorkflows.tenantId],
+    references: [tenants.id],
+  }),
+  steps: many(workflowSteps),
+  expenses: many(expenses),
+}));
+
+/**
+ * Workflow Step relations
+ */
+export const workflowStepsRelations = relations(workflowSteps, ({ one, many }) => ({
+  workflow: one(expenseWorkflows, {
+    fields: [workflowSteps.workflowId],
+    references: [expenseWorkflows.id],
+  }),
+  approvals: many(expenseApprovals),
+  currentExpenses: many(expenses, { relationName: 'currentStep' }),
 }));
 
 /**
@@ -201,12 +301,40 @@ export const expensesRelations = relations(expenses, ({ one, many }) => ({
     references: [users.id],
     relationName: 'approver',
   }),
+  workflow: one(expenseWorkflows, {
+    fields: [expenses.workflowId],
+    references: [expenseWorkflows.id],
+  }),
+  currentStep: one(workflowSteps, {
+    fields: [expenses.currentStepId],
+    references: [workflowSteps.id],
+    relationName: 'currentStep',
+  }),
   glCode: one(glCodes, {
     fields: [expenses.glCodeId],
     references: [glCodes.id],
   }),
   history: many(expenseHistory),
   attachments: many(expenseAttachments),
+  approvals: many(expenseApprovals),
+}));
+
+/**
+ * Expense Approval relations
+ */
+export const expenseApprovalsRelations = relations(expenseApprovals, ({ one }) => ({
+  expense: one(expenses, {
+    fields: [expenseApprovals.expenseId],
+    references: [expenses.id],
+  }),
+  workflowStep: one(workflowSteps, {
+    fields: [expenseApprovals.workflowStepId],
+    references: [workflowSteps.id],
+  }),
+  approver: one(users, {
+    fields: [expenseApprovals.approverId],
+    references: [users.id],
+  }),
 }));
 
 /**
@@ -246,8 +374,17 @@ export type NewUser = typeof users.$inferInsert;
 export type GlCode = typeof glCodes.$inferSelect;
 export type NewGlCode = typeof glCodes.$inferInsert;
 
+export type ExpenseWorkflow = typeof expenseWorkflows.$inferSelect;
+export type NewExpenseWorkflow = typeof expenseWorkflows.$inferInsert;
+
+export type WorkflowStep = typeof workflowSteps.$inferSelect;
+export type NewWorkflowStep = typeof workflowSteps.$inferInsert;
+
 export type Expense = typeof expenses.$inferSelect;
 export type NewExpense = typeof expenses.$inferInsert;
+
+export type ExpenseApproval = typeof expenseApprovals.$inferSelect;
+export type NewExpenseApproval = typeof expenseApprovals.$inferInsert;
 
 export type ExpenseHistory = typeof expenseHistory.$inferSelect;
 export type NewExpenseHistory = typeof expenseHistory.$inferInsert;
@@ -260,3 +397,4 @@ export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type WorkflowType = (typeof workflowTypeEnum.enumValues)[number];
 export type ExpenseStatus = (typeof expenseStatusEnum.enumValues)[number];
 export type ExpenseAction = (typeof expenseActionEnum.enumValues)[number];
+export type ApprovalStatus = (typeof approvalStatusEnum.enumValues)[number];

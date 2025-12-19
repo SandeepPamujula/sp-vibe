@@ -90,8 +90,14 @@ erDiagram
     TENANTS ||--o{ USERS : has
     TENANTS ||--o{ EXPENSES : has
     TENANTS ||--o{ GL_CODES : has
+    TENANTS ||--o{ EXPENSE_WORKFLOWS : has
+    EXPENSE_WORKFLOWS ||--o{ WORKFLOW_STEPS : has
+    EXPENSE_WORKFLOWS ||--o{ EXPENSES : uses
+    WORKFLOW_STEPS ||--o{ EXPENSE_APPROVALS : defines
     USERS ||--o{ EXPENSES : submits
     USERS ||--o{ EXPENSES : approves
+    USERS ||--o{ EXPENSE_APPROVALS : acts
+    EXPENSES ||--o{ EXPENSE_APPROVALS : has
     EXPENSES ||--o{ EXPENSE_HISTORY : has
     EXPENSES ||--o{ EXPENSE_ATTACHMENTS : has
     GL_CODES ||--o{ EXPENSES : maps
@@ -122,11 +128,34 @@ erDiagram
         boolean is_active
     }
     
+    EXPENSE_WORKFLOWS {
+        uuid id PK
+        uuid tenant_id FK
+        string name
+        enum code "petty|internet"
+        text description
+        boolean is_active
+    }
+    
+    WORKFLOW_STEPS {
+        uuid id PK
+        uuid workflow_id FK
+        integer step_order
+        string name
+        text description
+        enum approver_role "admin|approver"
+        decimal amount_threshold
+        boolean is_final
+        boolean is_active
+    }
+    
     EXPENSES {
         uuid id PK
         uuid tenant_id FK
         uuid submitted_by FK
         uuid approved_by FK
+        uuid workflow_id FK
+        uuid current_step_id FK
         enum workflow_type "petty|internet"
         date expense_date
         string invoice_number
@@ -138,6 +167,17 @@ erDiagram
         enum status "draft|submitted|approved|rejected"
         timestamp created_at
         timestamp updated_at
+    }
+    
+    EXPENSE_APPROVALS {
+        uuid id PK
+        uuid expense_id FK
+        uuid workflow_step_id FK
+        uuid approver_id FK
+        enum status "pending|approved|rejected|skipped"
+        text comments
+        timestamp acted_at
+        timestamp created_at
     }
     
     EXPENSE_HISTORY {
@@ -187,15 +227,61 @@ GL codes are managed by **System/DB Admin** (not a role in the application). GL 
 
 ## Expense State Flow
 
+### Workflow-Based Approval
+
+The system uses configurable workflows with approval steps:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft: Create
+    Draft --> Submitted: Submit (routes to workflow)
+    Submitted --> Approved: Step Approved (if final step)
+    Submitted --> Rejected: Step Rejected
+    Rejected --> Submitted: Resubmit
+    Approved --> [*]
+```
+
+### Current Configuration (Single-Level Approval)
+
+Each tenant has workflows configured with a single approval step:
+
+| Table | Purpose |
+|-------|---------|
+| `expense_workflows` | Workflow definitions per tenant (petty, internet) |
+| `workflow_steps` | Approval steps (currently 1 step per workflow) |
+| `expense_approvals` | Tracks approval decisions per expense |
+
+**How it works:**
+1. Expense is created and linked to a workflow based on `workflow_type`
+2. On submit, an `expense_approval` record is created for the workflow step
+3. Approver reviews and approves/rejects
+4. `expense_approvals.status` and `expenses.status` are updated
+5. Audit trail recorded in `expense_history`
+
+### Multi-Level Approval (Future Ready)
+
+The schema supports multi-level approval - just add more steps:
+
 ```mermaid
 stateDiagram-v2
     [*] --> Draft: Create
     Draft --> Submitted: Submit
-    Submitted --> Approved: Approve
-    Submitted --> Rejected: Reject
+    Submitted --> Step1: Route to Workflow
+    Step1 --> Step2: Step 1 Approved
+    Step1 --> Rejected: Step 1 Rejected
+    Step2 --> Step3: Step 2 Approved
+    Step2 --> Rejected: Step 2 Rejected
+    Step3 --> Approved: Final Approval
+    Step3 --> Rejected: Final Rejected
     Rejected --> Submitted: Resubmit
     Approved --> [*]
 ```
+
+**To enable multi-level:**
+1. Add more `workflow_steps` with incrementing `step_order` (1, 2, 3...)
+2. Set `is_final = false` for intermediate steps
+3. Use `amount_threshold` to skip steps for small amounts
+4. Track progress via `expenses.current_step_id`
 
 ---
 
