@@ -5,8 +5,8 @@
  *
  * - env.ts: Environment variable validation
  * - config.ts: Application configuration
- * - db.ts: Database client (Drizzle) - TBD
- * - auth.ts: Authentication utilities - TBD
+ * - db.ts: Database client (Drizzle)
+ * - auth/: Authentication utilities (mock SSO, JWT)
  * - s3.ts: S3 client for file uploads - TBD
  * - email.ts: SES client for notifications - TBD
  */
@@ -27,3 +27,11 @@ export {
   environment,
 } from './config';
 export type { AppConfig } from './config';
+
+// Database
+export { db } from './db';
+export type { Database } from './db';
+
+// Authentication
+export { getTestUsers, getAvailableTenants, mockSsoAuthenticate, getUserById } from './auth';
+export type { AzureAdUserProfile, TestUser, MockSsoResult } from './auth';
