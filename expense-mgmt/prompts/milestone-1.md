@@ -21,7 +21,7 @@ Set up project foundation, local database, and core infrastructure.
 | 1.3 | Configure ESLint, Prettier, TypeScript | Completed |
 | 1.4 | Set up local PostgreSQL (Docker) | Completed |
 | 1.5 | Create Drizzle schema | Completed |
-| 1.6 | Create TypeScript types | Pending |
+| 1.6 | Create TypeScript types | Completed |
 | 1.7 | Create Zod validation schemas | Pending |
 | 1.8 | Set up environment configuration | Pending |
 | 1.9 | Create database seed script | Pending |
@@ -351,4 +351,70 @@ Schema was already created in `drizzle/schema.ts` with all required tables, enum
 - `onDelete: restrict` for user references (prevent orphaned records)
 - `onDelete: set null` for optional references (approved_by, gl_code_id)
 - JSONB field `changes` in expense_history stores field-level change diffs
+
+---
+
+### Prompt 6: Create TypeScript Types
+
+**Date**: 2024-12-19
+**Task ID**: 1.6
+
+#### Request
+Create TypeScript type definitions for the expense management system.
+
+#### Implementation
+Created comprehensive TypeScript types organized into separate files by domain:
+
+**Files Created:**
+- `src/types/api.types.ts` - API response wrappers and error handling
+- `src/types/auth.types.ts` - JWT payloads, sessions, and RBAC
+- `src/types/entity.types.ts` - Entity types with relations
+- `src/types/dto.types.ts` - Data transfer objects for forms/requests
+- `src/types/query.types.ts` - Query, filter, and pagination types
+- `src/types/index.ts` - Central export for all types
+
+#### Type Categories
+
+**API Types:**
+- `ApiResponse<T>` - Standardized response wrapper
+- `PaginatedResponse<T>` - Paginated list responses
+- `ApiError` - Error structure with code, message, details
+- `API_ERROR_CODES` - Common error code constants
+
+**Auth Types:**
+- `JwtPayload` - JWT token structure
+- `AuthToken` - Decoded token data
+- `TenantContext` - Multi-tenant context
+- `UserSession` - Authenticated session
+- `PermissionAction` - RBAC action types
+- `ROLE_PERMISSIONS` - Role-based permission map
+
+**Entity Types:**
+- Re-exports all Drizzle schema types
+- `ExpenseWithRelations` - Expense with submitter, approver, glCode, attachments
+- `ExpenseWithHistory` - Full expense with audit trail
+- `ExpenseSummary` - List view summary
+- `ExpenseStats` - Dashboard statistics
+- `AuditTrailEntry` - History entry for display
+
+**DTO Types:**
+- `CreateExpenseDto`, `UpdateExpenseDto` - Expense CRUD
+- `ApproveExpenseDto`, `RejectExpenseDto` - Approval workflow
+- `ExpenseFormData` - Client-side form state
+- `UploadAttachmentDto`, `UploadPresignedUrl` - File uploads
+- `GenerateReportDto`, `ReportDownloadResponse` - Report generation
+- `BulkApproveDto`, `BulkRejectDto` - Bulk actions
+
+**Query Types:**
+- `PaginationParams`, `SortParams` - Generic pagination/sorting
+- `ExpenseListQuery` - Expense list filters
+- `ExpenseFilterState` - UI filter state
+- `AuditTrailQuery`, `ReportQuery` - Specialized queries
+- `SearchQuery`, `SearchResult` - Global search
+
+#### Notes
+- Types are designed to work with Zod schemas (Task 1.7)
+- Entity types re-export Drizzle schema types for consistency
+- DTOs separate API input from database models
+- Query types support complex filtering and pagination
 
