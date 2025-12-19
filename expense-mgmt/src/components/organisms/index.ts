@@ -1,7 +1,7 @@
 /**
  * Organisms - Complex components
  *
- * Examples: ExpenseForm, ExpenseTable, ApprovalModal, Header
+ * Examples: Header, LoginForm, ExpenseList, NavigationMenu
  */
 
-export {};
+export { LoginForm } from './LoginForm';

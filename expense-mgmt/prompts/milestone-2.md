@@ -17,7 +17,7 @@ Implement mock SSO and role-based access control.
 | Task ID | Description | Status |
 |---------|-------------|--------|
 | 2.1 | Create mock Azure Entra SSO provider | ✅ Complete |
-| 2.2 | Implement login page with test user selection | Pending |
+| 2.2 | Implement login page with test user selection | ✅ Complete |
 | 2.3 | Create session management (JWT tokens) | Pending |
 | 2.4 | Implement tenant context middleware | Pending |
 | 2.5 | Create role-based route protection | Pending |
@@ -50,4 +50,29 @@ Implement mock SSO and role-based access control.
    - `POST /api/auth/mock-sso` - Authenticates user and returns profile
 
 **Bug Fix:** Moved `app/favicon.ico` to `src/app/` and removed empty `app/` directory to fix Next.js routing conflict.
+
+### Task 2.2: Implement login page with test user selection
+
+**Prompt:** "build 2.2"
+
+**Implementation:**
+
+1. Created reusable UI components (Atomic Design pattern):
+   - `src/components/atoms/Button.tsx` - Primary button with variants, sizes, loading state
+   - `src/components/atoms/Select.tsx` - Dropdown select with label and error state
+   - `src/components/atoms/Badge.tsx` - Status indicator with variants
+   - `src/components/atoms/Spinner.tsx` - Loading spinner
+   - `src/components/molecules/UserCard.tsx` - User selection card with role badge
+   - `src/components/organisms/LoginForm.tsx` - Complete login form
+2. Updated `src/app/(auth)/login/page.tsx` to use LoginForm component
+
+**Features:**
+- Azure AD branding (Microsoft logo, "Azure AD" label)
+- Organization (tenant) dropdown with auto-select for single tenant
+- User selection cards showing name, email, and role badge
+- Two-click login: first click selects, second click signs in
+- Loading states for tenants, users, and login
+- Error handling and display
+- Development mode notice
+- Color-coded avatars and badges by role (admin=blue, approver=green)
 

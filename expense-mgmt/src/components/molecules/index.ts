@@ -1,7 +1,8 @@
 /**
  * Molecules - Composite components
  *
- * Examples: FormField, Card, Alert, SearchInput
+ * Examples: FormField, Card, NavItem
  */
 
-export {};
+export { UserCard } from './UserCard';
+export type { UserCardProps } from './UserCard';
