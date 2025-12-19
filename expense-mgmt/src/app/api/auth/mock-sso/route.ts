@@ -2,7 +2,8 @@
  * Mock SSO Authentication API
  *
  * Simulates Azure Entra ID SSO authentication for development.
- * Validates user credentials against the database and returns user info.
+ * Validates user credentials against the database, creates a JWT session,
+ * and returns user info with token.
  *
  * In production, this would be replaced with actual Azure AD authentication.
  */
@@ -10,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { API_ERROR_CODES, HTTP_STATUS } from '@/constants';
-import { mockSsoAuthenticate } from '@/lib';
+import { mockSsoAuthenticate, createSession } from '@/lib/auth';
 import type { TestUser, AzureAdUserProfile } from '@/lib/auth';
 import { features } from '@/lib/config';
 import { loginSchema } from '@/schemas';
@@ -19,6 +20,7 @@ import type { ApiResponse } from '@/types/api.types';
 interface MockSsoResponse {
   user: TestUser;
   profile: AzureAdUserProfile;
+  token: string;
 }
 
 type AuthResponse = ApiResponse<MockSsoResponse>;
@@ -35,6 +37,9 @@ type AuthResponse = ApiResponse<MockSsoResponse>;
  * Returns:
  * - user: User information with tenant context
  * - profile: Mock Azure AD profile claims
+ * - token: JWT session token
+ *
+ * Also sets an HTTP-only session cookie.
  */
 export async function POST(request: NextRequest): Promise<NextResponse<AuthResponse>> {
   // Only allow in development/mock auth mode
@@ -98,11 +103,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<AuthRespo
       );
     }
 
+    // Create session and get JWT token
+    const token = await createSession({
+      userId: result.user.id,
+      email: result.user.email,
+      name: result.user.name,
+      role: result.user.role,
+      tenantId: result.user.tenantId,
+      tenantSlug: result.user.tenantSlug,
+    });
+
     return NextResponse.json({
       success: true,
       data: {
         user: result.user,
         profile: result.profile,
+        token,
       },
     });
   } catch (error) {

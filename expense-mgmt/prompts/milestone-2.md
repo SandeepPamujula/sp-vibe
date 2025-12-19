@@ -18,7 +18,7 @@ Implement mock SSO and role-based access control.
 |---------|-------------|--------|
 | 2.1 | Create mock Azure Entra SSO provider | ✅ Complete |
 | 2.2 | Implement login page with test user selection | ✅ Complete |
-| 2.3 | Create session management (JWT tokens) | Pending |
+| 2.3 | Create session management (JWT tokens) | ✅ Complete |
 | 2.4 | Implement tenant context middleware | Pending |
 | 2.5 | Create role-based route protection | Pending |
 | 2.6 | Create protected layout component | Pending |
@@ -75,4 +75,35 @@ Implement mock SSO and role-based access control.
 - Error handling and display
 - Development mode notice
 - Color-coded avatars and badges by role (admin=blue, approver=green)
+
+### Task 2.3: Create session management (JWT tokens)
+
+**Prompt:** "build 2.3"
+
+**Implementation:**
+
+1. Created `src/lib/auth/jwt.ts` - JWT utilities:
+   - `signToken(user)` - Creates signed JWT with user data
+   - `verifyToken(token)` - Verifies and decodes JWT
+   - `decodeToken(token)` - Decodes without verification
+   - `isTokenExpired(token)` - Checks expiration
+   - `getTokenTTL(token)` - Gets remaining time
+2. Created `src/lib/auth/session.ts` - Session management:
+   - `createSession(user)` - Creates JWT and sets HTTP-only cookie
+   - `getSession()` - Reads session from cookie
+   - `clearSession()` - Deletes session cookie (logout)
+   - `refreshSession(user)` - Updates session with new data
+   - `requireSession()` - Throws if no valid session
+   - `getTenantContext()` - Gets tenant from session
+3. Created `src/app/api/auth/session/route.ts`:
+   - `GET /api/auth/session` - Returns current session
+   - `DELETE /api/auth/session` - Logs out user
+4. Updated `POST /api/auth/mock-sso` to create session and return JWT
+
+**Security Features:**
+- HTTP-only cookies (not accessible via JavaScript)
+- Secure flag in production
+- SameSite=Lax for CSRF protection
+- 24-hour token expiration
+- 7-day cookie max age
 

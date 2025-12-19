@@ -14,3 +14,26 @@ export {
   type TestUser,
   type MockSsoResult,
 } from './mock-sso';
+
+// JWT Utilities
+export {
+  signToken,
+  verifyToken,
+  decodeToken,
+  isTokenExpired,
+  getTokenTTL,
+  type TokenUserData,
+  type VerifyTokenResult,
+} from './jwt';
+
+// Session Management
+export {
+  createSession,
+  getSession,
+  clearSession,
+  refreshSession,
+  hasValidSession,
+  getTenantContext,
+  requireSession,
+  type SessionResult,
+} from './session';
