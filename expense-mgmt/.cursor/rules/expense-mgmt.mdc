@@ -1,0 +1,181 @@
+---
+description: Multi-Tenant Expense Management System - Cursor Rules
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# Expense Management System - Cursor Rules
+
+## Project Context
+
+This is a multi-tenant expense management system (Phase 1: Petty Expense Workflow).
+
+### Current Phase
+- **Workflow 1**: Petty Expense - Admin (Facility) and Approver can submit, Approver can approve/reject
+- **Workflow 2**: Internet Expense - Deferred to Phase 2
+
+### Roles (Phase 1)
+- **Admin (Facility Admin)**: Submit petty expenses, view audit trail
+- **Approver (Accountant)**: Submit, approve/reject, view all expenses, generate reports
+
+---
+
+## Tech Stack
+
+- **Framework**: Next.js 16+ with App Router
+- **Language**: TypeScript (strict mode)
+- **Database**: PostgreSQL with Drizzle ORM
+- **Validation**: Zod
+- **Testing**: Jest, Storybook
+- **File Storage**: S3 (local folder for dev)
+- **Email**: SES (mocked for dev)
+
+---
+
+## Critical Rules
+
+### Multi-Tenancy (ALWAYS ENFORCE)
+
+Every database query MUST include tenant_id filtering:
+
+```typescript
+// CORRECT
+const expenses = await db.query.expenses.findMany({
+  where: eq(expenses.tenantId, currentUser.tenantId),
+});
+
+// INCORRECT - NEVER DO THIS
+const expenses = await db.query.expenses.findMany();
+```
+
+### Validation
+
+Always validate inputs with Zod:
+
+```typescript
+import { z } from 'zod';
+
+export const createExpenseSchema = z.object({
+  expenseDate: z.coerce.date(),
+  invoiceNumber: z.string().min(1),
+  vendorName: z.string().min(1),
+  amount: z.number().positive(),
+  natureOfExpense: z.string().min(1),
+  glCodeId: z.string().uuid(),
+  purpose: z.string().min(1),
+});
+```
+
+### Error Handling
+
+Use standardized API responses:
+
+```typescript
+// Success
+return NextResponse.json({ success: true, data: result });
+
+// Error
+return NextResponse.json(
+  { success: false, error: { code: 'NOT_FOUND', message: 'Expense not found' } },
+  { status: 404 }
+);
+```
+
+---
+
+## Architecture Patterns
+
+### File Structure
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # Public auth routes
+│   ├── (dashboard)/       # Protected routes
+│   └── api/               # API routes
+├── components/
+│   ├── atoms/             # Buttons, inputs, labels
+│   ├── molecules/         # Form fields, cards
+│   └── organisms/         # Forms, tables, modals
+├── lib/                   # Utilities (db, auth, s3)
+├── services/              # Business logic
+├── schemas/               # Zod schemas
+└── types/                 # TypeScript types
+```
+
+### Atomic Design
+
+- **Atoms**: Basic UI elements (Button, Input, Label, Badge)
+- **Molecules**: Composite components (FormField, Card, Alert)
+- **Organisms**: Complex components (ExpenseForm, ExpenseTable, ApprovalModal)
+
+---
+
+## Database (Drizzle ORM)
+
+### Schema Location
+- Schema: `drizzle/schema.ts`
+- Migrations: `drizzle/migrations/`
+- Seed: `drizzle/seed.ts`
+
+### Common Patterns
+
+```typescript
+import { db } from '@/lib/db';
+import { expenses } from '@/drizzle/schema';
+import { eq, and } from 'drizzle-orm';
+
+// Query with tenant isolation
+const result = await db.query.expenses.findMany({
+  where: and(
+    eq(expenses.tenantId, tenantId),
+    eq(expenses.status, 'submitted')
+  ),
+});
+```
+
+---
+
+## File Uploads
+
+### Restrictions
+- **Allowed types**: PDF, PNG, JPEG, HEIC
+- **Max size**: 10 MB per file
+- **Max files**: 5 per submission
+
+---
+
+## Testing Protocol
+
+After completing each task, **always ask the user**:
+
+> "Would you like me to add Jest unit tests and/or Storybook component tests for this task?"
+
+### Test Types
+- **Jest**: Unit tests for services, utilities, schemas, API routes
+- **Storybook**: Component tests for atoms, molecules, organisms
+
+---
+
+## Prompt History
+
+After completing each task, update the appropriate milestone file in `prompts/` folder.
+
+---
+
+## Common Commands
+
+```bash
+# Development
+pnpm dev                    # Start dev server
+pnpm db:generate           # Generate Drizzle migrations
+pnpm db:migrate            # Run migrations
+pnpm db:seed               # Seed database
+
+# Testing
+pnpm test                  # Run Jest tests
+pnpm storybook             # Start Storybook
+
+# Build
+pnpm build                 # Production build
+pnpm lint                  # Run ESLint
+```
