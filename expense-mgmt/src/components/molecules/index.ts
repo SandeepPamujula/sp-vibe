@@ -9,3 +9,12 @@ export type { UserCardProps } from './UserCard';
 
 export { LogoutButton } from './LogoutButton';
 export type { LogoutButtonProps } from './LogoutButton';
+
+export { FormField, FormRow, FormSection } from './FormField';
+export type { FormFieldProps, FormRowProps, FormSectionProps } from './FormField';
+
+export { FileUploadZone } from './FileUploadZone';
+export type { FileUploadZoneProps, FileWithPreview } from './FileUploadZone';
+
+export { GlCodeSelect } from './GlCodeSelect';
+export type { GlCodeSelectProps } from './GlCodeSelect';

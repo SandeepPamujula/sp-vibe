@@ -22,6 +22,18 @@ export type { AvatarProps } from './Avatar';
 export { NavLink } from './NavLink';
 export type { NavLinkProps } from './NavLink';
 
+export { Input } from './Input';
+export type { InputProps } from './Input';
+
+export { Textarea } from './Textarea';
+export type { TextareaProps } from './Textarea';
+
+export { DateInput } from './DateInput';
+export type { DateInputProps } from './DateInput';
+
+export { CurrencyInput } from './CurrencyInput';
+export type { CurrencyInputProps } from './CurrencyInput';
+
 export {
   ReceiptIcon,
   CheckCircleIcon,

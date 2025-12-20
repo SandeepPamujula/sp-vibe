@@ -1,0 +1,91 @@
+# Expense Management System - Cursor Rules
+
+## JSX Text Content
+
+When writing JSX text content that includes special characters:
+
+- **Quotes**: Use curly braces with template literals or string literals instead of escaping
+  ```tsx
+  // ✅ Good - use curly braces
+  <p>{"We'll never share your email"}</p>
+  <p>{`Don't worry about "quotes"`}</p>
+  
+  // ❌ Avoid - HTML entities are harder to read
+  <p>We&apos;ll never share your email</p>
+  <p>Don&apos;t worry about &quot;quotes&quot;</p>
+  ```
+
+- **Apostrophes**: Use curly braces for contractions
+  ```tsx
+  // ✅ Good
+  <span>{"It's working"}</span>
+  
+  // ❌ Avoid
+  <span>It&apos;s working</span>
+  ```
+
+## Component Patterns
+
+### Client Components
+- Add `'use client'` directive at the top of files that use React hooks (`useState`, `useEffect`, `useRef`, etc.)
+- Place the directive before all imports
+
+### Import Organization
+- Separate type imports from value imports for clarity
+- Group imports: React → external libs → internal modules → types
+
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+
+import { someLib } from 'external-lib';
+
+import { Button } from '@/components/atoms';
+import type { ButtonProps } from '@/components/atoms';
+```
+
+## Form Components
+
+### Atoms (Basic Elements)
+- Include `label`, `error`, `helperText`, and `isRequired` props
+- Use `aria-invalid` and `aria-describedby` for accessibility
+- Support `forwardRef` for form library integration
+
+### Molecules (Composite Components)
+- Combine atoms into reusable form patterns
+- Handle validation display
+- Provide consistent spacing with FormField/FormRow
+
+## Images
+
+### When to use `next/image` vs native `<img>`
+
+- **Use `next/image`** for static images, remote URLs, or any images that can be optimized
+  ```tsx
+  import Image from 'next/image';
+  
+  <Image src="/logo.png" alt="Logo" width={100} height={50} />
+  <Image src="https://example.com/image.jpg" alt="Remote" width={200} height={200} />
+  ```
+
+- **Use native `<img>`** for blob URLs (from `URL.createObjectURL()`) - Next.js Image doesn't support these
+  ```tsx
+  // ✅ Correct - blob URLs require native img
+  /* eslint-disable-next-line @next/next/no-img-element -- blob URLs not supported by next/image */
+  <img src={blobUrl} alt="Preview" />
+  ```
+
+- Always add the eslint-disable comment with explanation when using `<img>`
+
+## Testing
+
+- Place tests in `__tests__` folder next to components
+- Use `@testing-library/react` for component tests
+- Mock file APIs when testing file upload components
+
+## Multi-Tenancy
+
+CRITICAL: Every database query MUST include `tenant_id` filtering.
+

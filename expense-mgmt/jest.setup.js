@@ -2,18 +2,11 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-<<<<<<< Current (Your changes)
 // Set up environment variables for tests
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-only';
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
-=======
-// Set up test environment variables before any imports
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
-process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only-32chars';
-process.env.NODE_ENV = 'test';
->>>>>>> Incoming (Background Agent changes)
 
 // Polyfill for Web APIs needed by Next.js
 if (typeof Request === 'undefined') {
@@ -91,4 +84,3 @@ jest.mock('next/headers', () => ({
     return new Headers();
   },
 }));
-
