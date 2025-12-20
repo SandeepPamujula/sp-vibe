@@ -5,10 +5,9 @@ import {
   hasPermission,
   hasAllPermissions,
   hasAnyPermission,
-  getPermissions,
+  getRolePermissions,
   canAccessRoute,
-  canAccessPath,
-  getRoutePermission,
+  ROUTE_PERMISSIONS,
 } from './permissions';
 
 describe('Permission Utilities', () => {
@@ -74,9 +73,9 @@ describe('Permission Utilities', () => {
     });
   });
 
-  describe('getPermissions', () => {
+  describe('getRolePermissions', () => {
     it('should return all permissions for admin', () => {
-      const permissions = getPermissions('admin');
+      const permissions = getRolePermissions('admin');
 
       expect(permissions).toContain('expense:create');
       expect(permissions).toContain('expense:read');
@@ -86,7 +85,7 @@ describe('Permission Utilities', () => {
     });
 
     it('should return all permissions for approver', () => {
-      const permissions = getPermissions('approver');
+      const permissions = getRolePermissions('approver');
 
       expect(permissions).toContain('expense:approve');
       expect(permissions).toContain('expense:reject');
@@ -96,83 +95,66 @@ describe('Permission Utilities', () => {
   });
 
   describe('canAccessRoute', () => {
-    it('should grant access when role has all required permissions', () => {
-      expect(canAccessRoute('approver', ['expense:approve', 'expense:reject'], true)).toBe(true);
+    it('should grant access when role is allowed for route', () => {
+      const result = canAccessRoute('approver', '/approvals');
+      expect(result.allowed).toBe(true);
     });
 
-    it('should deny access when role lacks a required permission', () => {
-      expect(canAccessRoute('admin', ['expense:approve'], true)).toBe(false);
+    it('should deny access when role lacks required permission', () => {
+      const result = canAccessRoute('admin', '/approvals');
+      expect(result.allowed).toBe(false);
     });
 
-    it('should grant access when requireAll is false and role has one permission', () => {
-      expect(canAccessRoute('admin', ['expense:create', 'expense:approve'], false)).toBe(true);
+    it('should grant access when route has no restrictions', () => {
+      const result = canAccessRoute('admin', '/unknown-route');
+      expect(result.allowed).toBe(true);
     });
 
-    it('should grant access for empty permissions array', () => {
-      expect(canAccessRoute('admin', [], true)).toBe(true);
-      expect(canAccessRoute('approver', [], false)).toBe(true);
-    });
-  });
-
-  describe('getRoutePermission', () => {
-    it('should return permission config for /expenses', () => {
-      const config = getRoutePermission('/expenses');
-
-      expect(config).toBeDefined();
-      expect(config?.path).toBe('/expenses');
-      expect(config?.permissions).toContain('expense:read');
+    it('should grant admin access to /expenses', () => {
+      const result = canAccessRoute('admin', '/expenses');
+      expect(result.allowed).toBe(true);
     });
 
-    it('should return permission config for /approvals', () => {
-      const config = getRoutePermission('/approvals');
-
-      expect(config).toBeDefined();
-      expect(config?.permissions).toContain('expense:approve');
-      expect(config?.requireAll).toBe(false);
+    it('should grant approver access to /expenses', () => {
+      const result = canAccessRoute('approver', '/expenses');
+      expect(result.allowed).toBe(true);
     });
 
-    it('should return undefined for unknown route', () => {
-      const config = getRoutePermission('/unknown');
-
-      expect(config).toBeUndefined();
+    it('should grant approver access to /reports', () => {
+      const result = canAccessRoute('approver', '/reports');
+      expect(result.allowed).toBe(true);
     });
 
-    it('should match nested routes with prefix', () => {
-      const config = getRoutePermission('/expenses/123');
+    it('should deny admin access to /reports', () => {
+      const result = canAccessRoute('admin', '/reports');
+      expect(result.allowed).toBe(false);
+    });
 
-      expect(config).toBeDefined();
-      expect(config?.path).toBe('/expenses');
+    it('should support nested route matching', () => {
+      const result = canAccessRoute('approver', '/expenses/123');
+      expect(result.allowed).toBe(true);
     });
   });
 
-  describe('canAccessPath', () => {
-    it('should allow admin to access /expenses', () => {
-      expect(canAccessPath('admin', '/expenses')).toBe(true);
+  describe('ROUTE_PERMISSIONS', () => {
+    it('should have expense route configured', () => {
+      const expenseRoute = ROUTE_PERMISSIONS.find((r) => r.path === '/expenses');
+      expect(expenseRoute).toBeDefined();
+      expect(expenseRoute?.roles).toContain('admin');
+      expect(expenseRoute?.roles).toContain('approver');
     });
 
-    it('should allow approver to access /expenses', () => {
-      expect(canAccessPath('approver', '/expenses')).toBe(true);
+    it('should have approvals route configured for approvers only', () => {
+      const approvalRoute = ROUTE_PERMISSIONS.find((r) => r.path === '/approvals');
+      expect(approvalRoute).toBeDefined();
+      expect(approvalRoute?.roles).toContain('approver');
+      expect(approvalRoute?.permissions).toContain('expense:approve');
     });
 
-    it('should allow approver to access /approvals', () => {
-      expect(canAccessPath('approver', '/approvals')).toBe(true);
-    });
-
-    it('should deny admin access to /approvals (no approve permission)', () => {
-      expect(canAccessPath('admin', '/approvals')).toBe(false);
-    });
-
-    it('should allow approver to access /reports', () => {
-      expect(canAccessPath('approver', '/reports')).toBe(true);
-    });
-
-    it('should deny admin access to /reports (no report:generate permission)', () => {
-      expect(canAccessPath('admin', '/reports')).toBe(false);
-    });
-
-    it('should allow access to undefined routes', () => {
-      expect(canAccessPath('admin', '/unknown-route')).toBe(true);
-      expect(canAccessPath('approver', '/unknown-route')).toBe(true);
+    it('should have reports route configured', () => {
+      const reportRoute = ROUTE_PERMISSIONS.find((r) => r.path === '/reports');
+      expect(reportRoute).toBeDefined();
+      expect(reportRoute?.permissions).toContain('report:generate');
     });
   });
 });
