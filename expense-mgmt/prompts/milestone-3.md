@@ -19,7 +19,7 @@ Implement petty expense submission workflow.
 | 3.1 | ~~Create GL code management service~~ | N/A |
 | 3.2 | Create expense form components (atoms, molecules) | Done |
 | 3.3 | Implement file upload to S3 | Done |
-| 3.4 | Create petty expense submission API (with workflow integration) | Pending |
+| 3.4 | Create petty expense submission API (with workflow integration) | Done |
 | 3.5 | Implement petty expense submission page | Pending |
 | 3.6 | Create expense list view with filtering | Pending |
 | 3.7 | Implement expense detail view | Pending |
@@ -153,4 +153,60 @@ Implement petty expense submission workflow.
   - Clear files functionality
   - Progress tracking
   - isUploading state
+
+### Task 3.4: Create petty expense submission API (with workflow integration)
+
+**Expense Service (`src/services/expense.service.ts`):**
+- `createExpense()` - Create expense in draft status with GL code mapping
+- `updateExpense()` - Update draft expense with change tracking
+- `deleteExpense()` - Delete draft expense (with cascade)
+- `submitExpense()` - Submit expense for approval with workflow integration:
+  - Links expense to appropriate workflow based on `workflow_type`
+  - Creates `expense_approval` record for the first workflow step
+  - Sets `expenses.current_step_id` to the pending step
+  - Updates status to 'submitted' with audit logging
+- `getExpenseById()` - Get expense with all relations (submitter, approver, GL code, workflow, approvals, attachments)
+- `getExpenses()` - List expenses with filtering (status, workflowType, submittedBy) and pagination
+- `getPendingExpensesForApproval()` - Get submitted expenses pending approval
+- `getGlCodes()` - Get active GL codes for nature of expense selection
+
+**API Endpoints:**
+- `POST /api/expenses` - Create expense in draft status
+- `GET /api/expenses` - List expenses with filters and pagination
+- `GET /api/expenses/:expenseId` - Get expense details with all relations
+- `PUT /api/expenses/:expenseId` - Update draft expense
+- `DELETE /api/expenses/:expenseId` - Delete draft expense
+- `POST /api/expenses/:expenseId/submit` - Submit expense for approval (workflow integration)
+- `GET /api/gl-codes` - Get nature of expense options
+
+**Files Created/Updated:**
+- `src/services/expense.service.ts` - Expense service with CRUD and workflow integration
+- `src/services/index.ts` - Added expense service exports
+- `src/app/api/expenses/route.ts` - Create & list expenses
+- `src/app/api/expenses/[expenseId]/route.ts` - Get, update, delete expense
+- `src/app/api/expenses/[expenseId]/submit/route.ts` - Submit expense for approval
+- `src/app/api/gl-codes/route.ts` - Nature of expense options endpoint
+
+**Nature of Expense Mapping:**
+- `natureOfExpense` input is now a GL Code ID (from dropdown)
+- Backend automatically maps to both `glCodeId` and `natureOfExpense` (description)
+- Renamed `GlCodeSelect` component to `NatureOfExpenseSelect`
+- Updated DTO file from `gl-code.dto.ts` to `nature-of-expense.dto.ts`
+
+**Component Updates:**
+- `src/components/molecules/NatureOfExpenseSelect.tsx` - Renamed from GlCodeSelect
+- `src/components/molecules/NatureOfExpenseSelect.stories.tsx` - Updated stories
+- `src/types/dto/nature-of-expense.dto.ts` - Renamed types and helper function
+
+**Jest Tests Added (28 tests for expense service, 265 total):**
+- `src/services/__tests__/expense.service.test.ts` - 28 tests
+  - createExpense: GL code validation, workflow validation, expense creation with mapping
+  - updateExpense: validation, status checks, GL code mapping on update
+  - deleteExpense: not found, status validation, successful deletion
+  - submitExpense: validation, ownership check, workflow linking, approval record creation
+  - getExpenseById: not found, returns expense with relations
+  - getExpenses: empty list, pagination, filters
+  - getPendingExpensesForApproval: returns only submitted expenses
+  - getGlCodes: returns active codes, handles empty
+- `src/components/molecules/__tests__/NatureOfExpenseSelect.test.tsx` - 18 tests (renamed)
 
