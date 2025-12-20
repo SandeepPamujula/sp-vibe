@@ -67,3 +67,7 @@ export {
   TENANT_HEADERS,
 } from './auth';
 export type { RequestUser, RequestTenant, RequestContext } from './auth';
+
+// Storage
+export { storage, saveLocalFile, readLocalFile, isUsingS3 } from './storage';
+export type { StorageService, PresignedUrlResult, DownloadUrlResult } from './storage';
