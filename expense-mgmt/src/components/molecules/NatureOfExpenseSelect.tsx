@@ -1,21 +1,24 @@
 /**
- * GlCodeSelect Component
+ * NatureOfExpenseSelect Component
  *
- * GL Code selector with search and formatted display.
+ * Dropdown for selecting "Nature of Expense" in expense forms.
+ * Options are populated from GL Codes (/api/gl-codes).
+ * The selected value (GL Code ID) should be submitted as `natureOfExpense`
+ * when creating or updating an expense.
  */
 
 'use client';
 
 import { forwardRef, useMemo, type SelectHTMLAttributes } from 'react';
 
-import type { GlCodeSelectOption } from '@/types/dto/gl-code.dto';
+import type { NatureOfExpenseOption } from '@/types/dto/nature-of-expense.dto';
 
-export interface GlCodeSelectProps extends Omit<
+export interface NatureOfExpenseSelectProps extends Omit<
   SelectHTMLAttributes<HTMLSelectElement>,
   'children'
 > {
-  /** GL Code options */
-  options: GlCodeSelectOption[];
+  /** Nature of expense options (from /api/gl-codes) */
+  options: NatureOfExpenseOption[];
   /** Select label */
   label?: string;
   /** Placeholder text */
@@ -26,18 +29,18 @@ export interface GlCodeSelectProps extends Omit<
   helperText?: string;
   /** Required field indicator */
   isRequired?: boolean;
-  /** Show code in option label */
+  /** Show GL code number in option label (for reference) */
   showCode?: boolean;
   /** Loading state */
   isLoading?: boolean;
 }
 
-export const GlCodeSelect = forwardRef<HTMLSelectElement, GlCodeSelectProps>(
+export const NatureOfExpenseSelect = forwardRef<HTMLSelectElement, NatureOfExpenseSelectProps>(
   (
     {
       options,
       label,
-      placeholder = 'Select GL Code',
+      placeholder = 'Select nature of expense',
       error,
       helperText,
       isRequired = false,
@@ -58,7 +61,7 @@ export const GlCodeSelect = forwardRef<HTMLSelectElement, GlCodeSelectProps>(
     }, [options]);
 
     // Format option label
-    const formatLabel = (option: GlCodeSelectOption) => {
+    const formatLabel = (option: NatureOfExpenseOption) => {
       if (showCode) {
         return `${option.code} - ${option.description}`;
       }
@@ -132,7 +135,7 @@ export const GlCodeSelect = forwardRef<HTMLSelectElement, GlCodeSelectProps>(
         {/* Option count hint */}
         {options.length > 10 && (
           <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-            {options.length} GL codes available
+            {options.length} options available
           </p>
         )}
       </div>
@@ -140,7 +143,7 @@ export const GlCodeSelect = forwardRef<HTMLSelectElement, GlCodeSelectProps>(
   }
 );
 
-GlCodeSelect.displayName = 'GlCodeSelect';
+NatureOfExpenseSelect.displayName = 'NatureOfExpenseSelect';
 
 function ChevronDownIcon({ className }: { className?: string }) {
   return (
