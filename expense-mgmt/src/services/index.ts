@@ -24,3 +24,20 @@ export type {
   AttachmentUploadRequest,
   UploadUrlResponse,
 } from './attachment.service';
+
+// Expense Service
+export {
+  createExpense,
+  updateExpense,
+  deleteExpense,
+  submitExpense,
+  getExpenseById,
+  getExpenses,
+  getPendingExpensesForApproval,
+  getGlCodes,
+} from './expense.service';
+export type {
+  CreateExpenseParams,
+  UpdateExpenseParams,
+  SubmitExpenseResult,
+} from './expense.service';

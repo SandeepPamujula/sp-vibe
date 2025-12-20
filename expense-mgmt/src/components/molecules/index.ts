@@ -16,5 +16,5 @@ export type { FormFieldProps, FormRowProps, FormSectionProps } from './FormField
 export { FileUploadZone } from './FileUploadZone';
 export type { FileUploadZoneProps, FileWithPreview } from './FileUploadZone';
 
-export { GlCodeSelect } from './GlCodeSelect';
-export type { GlCodeSelectProps } from './GlCodeSelect';
+export { NatureOfExpenseSelect } from './NatureOfExpenseSelect';
+export type { NatureOfExpenseSelectProps } from './NatureOfExpenseSelect';

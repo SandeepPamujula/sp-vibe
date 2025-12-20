@@ -42,6 +42,9 @@ export const approvalStatusSchema = z.enum(['pending', 'approved', 'rejected', '
 
 /**
  * Schema for creating a new expense
+ *
+ * Note: `natureOfExpense` is a GL Code ID. The backend will automatically
+ * derive the expense description and map to the correct GL code.
  */
 export const createExpenseSchema = z.object({
   workflowType: workflowTypeSchema.default('petty'),
@@ -58,16 +61,16 @@ export const createExpenseSchema = z.object({
     .number()
     .positive('Amount must be positive')
     .max(999999999.99, 'Amount exceeds maximum'),
-  natureOfExpense: z
-    .string()
-    .min(1, 'Nature of expense is required')
-    .max(255, 'Nature of expense must be less than 255 characters'),
-  glCodeId: z.string().uuid('Invalid GL Code ID').optional(),
+  /** GL Code ID - maps internally to natureOfExpense and glCodeId */
+  natureOfExpense: z.string().uuid('Invalid nature of expense selection'),
   purpose: z.string().max(5000, 'Purpose must be less than 5000 characters').optional(),
 });
 
 /**
  * Schema for updating an existing expense
+ *
+ * Note: `natureOfExpense` is a GL Code ID. The backend will automatically
+ * derive the expense description and map to the correct GL code.
  */
 export const updateExpenseSchema = z.object({
   expenseDate: z
@@ -90,12 +93,8 @@ export const updateExpenseSchema = z.object({
     .positive('Amount must be positive')
     .max(999999999.99, 'Amount exceeds maximum')
     .optional(),
-  natureOfExpense: z
-    .string()
-    .min(1, 'Nature of expense is required')
-    .max(255, 'Nature of expense must be less than 255 characters')
-    .optional(),
-  glCodeId: z.string().uuid('Invalid GL Code ID').nullable().optional(),
+  /** GL Code ID - maps internally to natureOfExpense and glCodeId */
+  natureOfExpense: z.string().uuid('Invalid nature of expense selection').optional(),
   purpose: z.string().max(5000, 'Purpose must be less than 5000 characters').nullable().optional(),
 });
 

@@ -13,8 +13,8 @@ export * from './attachment.dto';
 // User DTOs
 export * from './user.dto';
 
-// GL Code DTOs
-export * from './gl-code.dto';
+// Nature of Expense DTOs
+export * from './nature-of-expense.dto';
 
 // Report DTOs
 export * from './report.dto';
