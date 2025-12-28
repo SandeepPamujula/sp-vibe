@@ -35,6 +35,7 @@ export {
   getExpenses,
   getPendingExpensesForApproval,
   getGlCodes,
+  getExpenseHistory,
 } from './expense.service';
 export type {
   CreateExpenseParams,

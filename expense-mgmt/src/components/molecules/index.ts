@@ -21,3 +21,6 @@ export type { NatureOfExpenseSelectProps } from './NatureOfExpenseSelect';
 
 export { ExpenseListFilters } from './ExpenseListFilters';
 export type { ExpenseListFiltersProps, ExpenseFilterState } from './ExpenseListFilters';
+
+export { ExpenseAuditTrail } from './ExpenseAuditTrail';
+export type { ExpenseAuditTrailProps } from './ExpenseAuditTrail';

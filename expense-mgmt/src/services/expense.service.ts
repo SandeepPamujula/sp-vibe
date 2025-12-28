@@ -13,6 +13,7 @@ import type {
   ExpenseSummary,
   WorkflowStepSummary,
   ApprovalSummary,
+  ExpenseHistoryEntry,
 } from '@/types/entities';
 
 import {
@@ -762,4 +763,46 @@ export async function getGlCodes(
     .orderBy(asc(glCodes.code));
 
   return result;
+}
+
+/**
+ * Get expense history/audit trail for an expense
+ *
+ * Returns all audit trail entries for an expense, ordered by creation date (oldest first).
+ * Includes user information for each entry.
+ */
+export async function getExpenseHistory(
+  expenseId: string,
+  tenantId: string
+): Promise<ExpenseHistoryEntry[]> {
+  // First verify the expense exists and belongs to the tenant
+  const expenseResult = await db
+    .select({ id: expenses.id })
+    .from(expenses)
+    .where(and(eq(expenses.id, expenseId), eq(expenses.tenantId, tenantId)))
+    .limit(1);
+
+  if (expenseResult.length === 0) {
+    throw new Error('Expense not found');
+  }
+
+  // Get history entries with user information
+  const historyResult = await db
+    .select({
+      history: expenseHistory,
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(expenseHistory)
+    .innerJoin(users, eq(users.id, expenseHistory.userId))
+    .where(eq(expenseHistory.expenseId, expenseId))
+    .orderBy(asc(expenseHistory.createdAt));
+
+  return historyResult.map((r) => ({
+    ...r.history,
+    user: r.user,
+  }));
 }

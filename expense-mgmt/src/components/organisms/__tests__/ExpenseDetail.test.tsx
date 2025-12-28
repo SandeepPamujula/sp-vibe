@@ -116,6 +116,21 @@ describe('ExpenseDetail', () => {
     jest.clearAllMocks();
     mockWindowOpen.mockClear();
     (global.alert as jest.Mock).mockClear();
+
+    // Mock history API call for ExpenseAuditTrail component
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/history')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [],
+          }),
+        });
+      }
+      // For other URLs, return undefined to let individual tests override
+      return undefined;
+    });
   });
 
   describe('Loading State', () => {
@@ -164,9 +179,20 @@ describe('ExpenseDetail', () => {
 
   describe('Expense Display', () => {
     beforeEach(() => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => mockExpenseResponse,
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/history')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [],
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockExpenseResponse,
+        });
       });
     });
 
@@ -429,21 +455,34 @@ describe('ExpenseDetail', () => {
     it('should handle attachment download', async () => {
       const user = userEvent.setup();
 
-      // Mock attachment download URL response
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
+      // Mock all API calls: expense detail, history, and attachment download URL
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/history')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [],
+            }),
+          });
+        }
+        if (url.includes('/attachments/')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                downloadUrl: '/api/attachments/download-local?key=test-key',
+              },
+            }),
+          });
+        }
+        // Expense detail API
+        return Promise.resolve({
           ok: true,
           json: async () => mockExpenseResponse,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            success: true,
-            data: {
-              downloadUrl: '/api/attachments/download-local?key=test-key',
-            },
-          }),
         });
+      });
 
       render(<ExpenseDetail expenseId={mockExpenseId} />);
 
@@ -452,7 +491,8 @@ describe('ExpenseDetail', () => {
       });
 
       const downloadButtons = screen.getAllByText('Download');
-      await user.click(downloadButtons[0]);
+      expect(downloadButtons.length).toBeGreaterThan(0);
+      await user.click(downloadButtons[0]!);
 
       await waitFor(() => {
         expect(mockWindowOpen).toHaveBeenCalledWith(
@@ -465,28 +505,46 @@ describe('ExpenseDetail', () => {
     it('should show loading state when downloading attachment', async () => {
       const user = userEvent.setup();
 
-      // Mock slow attachment download URL response
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
+      type AttachmentResponse = {
+        success: boolean;
+        data: { downloadUrl: string };
+      };
+
+      const attachmentResponse: AttachmentResponse = {
+        success: true,
+        data: {
+          downloadUrl: '/api/attachments/download-local?key=test-key',
+        },
+      };
+
+      let resolveAttachment: ((value: AttachmentResponse) => void) | undefined;
+      const attachmentFetchPromise = new Promise<AttachmentResponse>((resolve) => {
+        resolveAttachment = resolve;
+      });
+
+      // Mock all API calls: expense detail, history, and slow attachment download URL
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/history')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [],
+            }),
+          });
+        }
+        if (url.includes('/attachments/')) {
+          return attachmentFetchPromise.then((value) => ({
+            ok: true,
+            json: async () => value,
+          }));
+        }
+        // Expense detail API
+        return Promise.resolve({
           ok: true,
           json: async () => mockExpenseResponse,
-        })
-        .mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              setTimeout(() => {
-                resolve({
-                  ok: true,
-                  json: async () => ({
-                    success: true,
-                    data: {
-                      downloadUrl: '/api/attachments/download-local?key=test-key',
-                    },
-                  }),
-                });
-              }, 100);
-            })
-        );
+        });
+      });
 
       render(<ExpenseDetail expenseId={mockExpenseId} />);
 
@@ -495,10 +553,26 @@ describe('ExpenseDetail', () => {
       });
 
       const downloadButtons = screen.getAllByText('Download');
-      await user.click(downloadButtons[0]);
+      expect(downloadButtons.length).toBeGreaterThan(0);
+      const firstButton = downloadButtons[0]!;
 
-      // Button should be disabled during download
-      expect(downloadButtons[0]).toBeDisabled();
+      // Click the button to start download
+      await user.click(firstButton);
+
+      // Button should be disabled during download (before the promise resolves)
+      await waitFor(() => {
+        expect(firstButton).toBeDisabled();
+      });
+
+      // Resolve the attachment fetch promise
+      if (resolveAttachment) {
+        resolveAttachment(attachmentResponse);
+      }
+
+      // Wait for download to complete
+      await waitFor(() => {
+        expect(firstButton).not.toBeDisabled();
+      });
     });
   });
 
