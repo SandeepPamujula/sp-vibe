@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+storybook-static/
+coverage/
+
+# Generated files
+*.tsbuildinfo
+drizzle/migrations/meta/*.json
+*.lock
+pnpm-lock.yaml
+package-lock.json
+
+# Large static assets
+public/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+
+# Stories (reduce context)
+*.stories.tsx
+*.stories.ts
+
+# Test snapshots
+__snapshots__/
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment (keep .env.example, ignore actual env)
+.env
+.env.local
+.env.*.local
+
+# Local storage
+.local-storage/
+

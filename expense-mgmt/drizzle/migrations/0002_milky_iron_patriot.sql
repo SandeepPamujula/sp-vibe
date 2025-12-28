@@ -1,0 +1,1 @@
+ALTER TABLE "expenses" ALTER COLUMN "nature_of_expense" DROP NOT NULL;

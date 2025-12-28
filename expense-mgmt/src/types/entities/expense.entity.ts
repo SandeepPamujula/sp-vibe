@@ -47,7 +47,7 @@ export interface ExpenseSummary {
   expenseDate: string;
   vendorName: string;
   amount: string;
-  natureOfExpense: string;
+  natureOfExpense: string | null; // Nullable for drafts
   status: ExpenseStatus;
   workflowType: WorkflowType;
   submitterName: string;

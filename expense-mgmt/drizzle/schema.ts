@@ -158,7 +158,7 @@ export const expenses = pgTable('expenses', {
   invoiceNumber: varchar('invoice_number', { length: 100 }),
   vendorName: varchar('vendor_name', { length: 255 }).notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  natureOfExpense: varchar('nature_of_expense', { length: 255 }).notNull(),
+  natureOfExpense: varchar('nature_of_expense', { length: 255 }), // Nullable for drafts
   glCodeId: uuid('gl_code_id').references(() => glCodes.id, { onDelete: 'set null' }),
   purpose: text('purpose'),
   status: expenseStatusEnum('status').notNull().default('draft'),

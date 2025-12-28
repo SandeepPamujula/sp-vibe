@@ -7,6 +7,23 @@
 import { z } from 'zod';
 
 // ============================================================================
+// Custom Validators
+// ============================================================================
+
+/**
+ * UUID format validator (less strict than Zod's .uuid())
+ * Validates UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+ * but doesn't enforce RFC 4122 version/variant requirements.
+ * This allows seed data UUIDs like "c1111111-1111-1111-1111-111111111111"
+ */
+const uuidFormatSchema = z
+  .string()
+  .regex(
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+    'Invalid UUID format'
+  );
+
+// ============================================================================
 // Enum Schemas
 // ============================================================================
 
@@ -45,6 +62,9 @@ export const approvalStatusSchema = z.enum(['pending', 'approved', 'rejected', '
  *
  * Note: `natureOfExpense` is a GL Code ID. The backend will automatically
  * derive the expense description and map to the correct GL code.
+ *
+ * For draft expenses, only vendorName is required. Other fields can be
+ * filled in later before submission.
  */
 export const createExpenseSchema = z.object({
   workflowType: workflowTypeSchema.default('petty'),
@@ -61,8 +81,11 @@ export const createExpenseSchema = z.object({
     .number()
     .positive('Amount must be positive')
     .max(999999999.99, 'Amount exceeds maximum'),
-  /** GL Code ID - maps internally to natureOfExpense and glCodeId */
-  natureOfExpense: z.string().uuid('Invalid nature of expense selection'),
+  /** GL Code ID - maps internally to natureOfExpense and glCodeId. Optional for drafts. */
+  natureOfExpense: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    uuidFormatSchema.optional()
+  ),
   purpose: z.string().max(5000, 'Purpose must be less than 5000 characters').optional(),
 });
 
@@ -94,7 +117,10 @@ export const updateExpenseSchema = z.object({
     .max(999999999.99, 'Amount exceeds maximum')
     .optional(),
   /** GL Code ID - maps internally to natureOfExpense and glCodeId */
-  natureOfExpense: z.string().uuid('Invalid nature of expense selection').optional(),
+  natureOfExpense: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    uuidFormatSchema.optional()
+  ),
   purpose: z.string().max(5000, 'Purpose must be less than 5000 characters').nullable().optional(),
 });
 

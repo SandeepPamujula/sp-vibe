@@ -5,6 +5,8 @@ globs: ["**/*.ts", "**/*.tsx"]
 
 # Expense Management System - Cursor Rules
 
+> **Note**: For comprehensive project context (architecture, patterns, database schema, etc.), see `00-global-context.mdc`. This file contains specific coding rules and conventions.
+
 ## Project Context
 
 This is a multi-tenant expense management system (Phase 1: Petty Expense Workflow).

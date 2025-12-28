@@ -29,7 +29,6 @@ export async function POST(request: Request): Promise<NextResponse<CreateExpense
 
     const body = await request.json();
     const validation = createExpenseSchema.safeParse(body);
-
     if (!validation.success) {
       return NextResponse.json(
         {

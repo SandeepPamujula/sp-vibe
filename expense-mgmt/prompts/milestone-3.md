@@ -20,7 +20,7 @@ Implement petty expense submission workflow.
 | 3.2 | Create expense form components (atoms, molecules) | Done |
 | 3.3 | Implement file upload to S3 | Done |
 | 3.4 | Create petty expense submission API (with workflow integration) | Done |
-| 3.5 | Implement petty expense submission page | Pending |
+| 3.5 | Implement petty expense submission page | Done |
 | 3.6 | Create expense list view with filtering | Pending |
 | 3.7 | Implement expense detail view | Pending |
 | 3.8 | Create audit trail logging | Pending |
@@ -209,4 +209,138 @@ Implement petty expense submission workflow.
   - getPendingExpensesForApproval: returns only submitted expenses
   - getGlCodes: returns active codes, handles empty
 - `src/components/molecules/__tests__/NatureOfExpenseSelect.test.tsx` - 18 tests (renamed)
+
+### Task 3.5: Implement petty expense submission page
+
+**Organism Component Created:**
+- `ExpenseSubmissionForm.tsx` - Complete form component for creating and submitting petty expenses
+  - Form state management with React hooks
+  - Real-time validation with helpful error messages
+  - Integration with GL codes API to populate nature of expense dropdown
+  - Draft saving functionality (auto-saves as draft before submission)
+  - File upload integration using `useFileUpload` hook
+  - Progress tracking for file uploads
+  - Submit workflow: validate → save draft → upload files → submit for approval
+  - Cancel and success callbacks
+  - Loading states for all async operations
+  - Responsive layout using FormRow, FormField, FormSection components
+
+**Page Created:**
+- `src/app/(dashboard)/expenses/submit/page.tsx` - Expense submission page
+  - Clean, focused layout with max-width container
+  - Page title and description
+  - Integration with ExpenseSubmissionForm component
+  - Protected route (requires authentication via middleware)
+
+**Expenses List Page Updated:**
+- `src/app/(dashboard)/expenses/page.tsx` - Updated with submission flow
+  - "Submit Expense" button in header (navigates to /expenses/submit)
+  - Success message display after successful submission
+  - Draft saved message display after saving draft
+  - Improved layout with action button
+
+**Component Exports Updated:**
+- `src/components/organisms/index.ts` - Added ExpenseSubmissionForm exports
+
+**Form Features:**
+- **Required Fields:** Expense Date, Vendor Name, Amount, Nature of Expense
+- **Optional Fields:** Invoice Number, Purpose/Description
+- **File Uploads:** Support for multiple attachments (PDFs, images)
+- **Validation Rules:**
+  - Expense date cannot be in the future
+  - Vendor name: 1-255 characters
+  - Amount: positive number, max 999,999,999.99
+  - Invoice number: max 100 characters
+  - Purpose: max 5000 characters
+- **Draft Workflow:**
+  - Save as Draft requires only vendor name
+  - Draft is created/updated before file uploads
+  - Files are uploaded after draft creation
+- **Submit Workflow:**
+  - Full validation before submission
+  - Creates/updates draft expense
+  - Waits for file uploads to complete
+  - Submits expense for approval
+  - Redirects to expenses list with success message
+
+**User Experience:**
+- Form sections clearly organized (Expense Details, Purpose, Attachments)
+- Inline validation with immediate feedback
+- Field errors cleared on user input
+- Disabled buttons during async operations
+- Loading spinners on buttons during save/submit
+- File upload progress bar with percentage
+- Success/error messages with proper styling
+- Cancel button returns to expenses list
+
+**Jest Tests Added (19 tests for ExpenseSubmissionForm, 284 total):**
+- `src/components/organisms/__tests__/ExpenseSubmissionForm.test.tsx` - 19 tests
+  - Rendering: form sections, required fields, action buttons, default date
+  - GL Codes Loading: API call, dropdown population, error handling
+  - Form Validation: missing fields, invalid values, error clearing
+  - Save as Draft: validation, API integration, redirect
+  - Form Submission: valid submission, error handling, workflow
+  - Cancel Action: callbacks, default redirect
+  - Button States: disable during operations
+
+**Storybook Stories Added:**
+- `src/components/organisms/ExpenseSubmissionForm.stories.tsx`
+  - Default: Empty form ready for input
+  - WithCallbacks: Demonstrates success/cancel handlers
+  - Interactive: Full interactive demo with mock API responses
+
+**Files Created:**
+- `src/components/organisms/ExpenseSubmissionForm.tsx`
+- `src/components/organisms/ExpenseSubmissionForm.stories.tsx`
+- `src/components/organisms/__tests__/ExpenseSubmissionForm.test.tsx`
+- `src/app/(dashboard)/expenses/submit/page.tsx`
+
+**Files Updated:**
+- `src/components/organisms/index.ts`
+- `src/app/(dashboard)/expenses/page.tsx`
+
+**Build Status:**
+- ✅ All 284 tests passing
+- ✅ TypeScript compilation successful
+- ✅ Next.js build successful
+- ✅ No linter errors
+
+### Maintenance: Code Quality and Developer Experience Improvements
+
+**Global Project Context for Cursor Optimization:**
+- Created comprehensive global context file (`.cursor/rules/00-global-context.mdc`) to reduce Cursor's need to repeatedly analyze codebase
+- Includes: project overview, tech stack, database schema, file structure, architecture patterns, common patterns, testing strategies, and key conventions
+- Updated `.cursor/rules/expense-mgmt.mdc` to reference global context file
+- Benefits: Faster context loading, reduced token usage, better consistency across AI-assisted development
+
+**Zod Schema Validation Fix:**
+- Fixed validation error for `natureOfExpense` field when empty string is sent
+- Updated `createExpenseSchema` and `updateExpenseSchema` in `src/schemas/expense.schema.ts`
+- Added preprocessing to convert empty strings, null, or undefined to undefined before UUID validation
+- Allows optional `natureOfExpense` field for draft expenses while maintaining UUID validation when value is provided
+- Resolved error: `Error [ZodError]: Invalid nature of expense selection` when submitting expenses with empty natureOfExpense
+
+**Code Cleanup - Debug Logs Removal:**
+- Removed all unwanted debug `console.log()` statements from:
+  - `src/services/expense.service.ts` - Removed debug logs from `createExpense()` and `submitExpense()` functions
+  - `src/app/api/expenses/route.ts` - Removed debug logs from POST handler
+  - `src/app/api/expenses/[expenseId]/submit/route.ts` - Removed debug logs from submit handler
+  - `src/components/organisms/ExpenseSubmissionForm.tsx` - Removed debug logs from form component
+- Kept all `console.error()` statements for proper error logging in production
+- Improved code cleanliness and reduced console noise during development
+
+**Files Updated:**
+- `.cursor/rules/00-global-context.mdc` - Created comprehensive global context file
+- `.cursor/rules/expense-mgmt.mdc` - Added reference to global context
+- `src/schemas/expense.schema.ts` - Fixed natureOfExpense validation preprocessing
+- `src/services/expense.service.ts` - Removed debug logs, cleaned up code
+- `src/app/api/expenses/route.ts` - Removed debug logs
+- `src/app/api/expenses/[expenseId]/submit/route.ts` - Removed debug logs
+- `src/components/organisms/ExpenseSubmissionForm.tsx` - Removed debug logs
+
+**Build Status:**
+- ✅ TypeScript compilation successful
+- ✅ Next.js build successful
+- ✅ No linter errors
+- ✅ All validation errors resolved
 
