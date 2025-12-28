@@ -13,4 +13,7 @@ export type { SidebarProps } from './Sidebar';
 export { ExpenseSubmissionForm } from './ExpenseSubmissionForm';
 export type { ExpenseSubmissionFormProps } from './ExpenseSubmissionForm';
 
+export { ExpenseList } from './ExpenseList';
+export type { ExpenseListProps } from './ExpenseList';
+
 export type { HeaderProps } from './Header';

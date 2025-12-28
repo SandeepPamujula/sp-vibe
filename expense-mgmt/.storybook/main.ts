@@ -1,4 +1,5 @@
 import type { StorybookConfig } from '@storybook/nextjs-vite';
+import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
   "stories": [
@@ -15,6 +16,16 @@ const config: StorybookConfig = {
   "framework": "@storybook/nextjs-vite",
   "staticDirs": [
     "../public"
-  ]
+  ],
+  async viteFinal(config) {
+    // Alias next/navigation to our mock in Storybook
+    return mergeConfig(config, {
+      resolve: {
+        alias: {
+          'next/navigation': require.resolve('./mocks/next-navigation.ts'),
+        },
+      },
+    });
+  },
 };
 export default config;

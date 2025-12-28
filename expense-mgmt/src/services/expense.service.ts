@@ -5,7 +5,7 @@
  * Handles creating, updating, submitting, and retrieving expenses.
  */
 
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and, desc, asc, like, or, gte, lte, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import type {
@@ -626,11 +626,23 @@ export async function getExpenses(
     status?: ExpenseStatus;
     workflowType?: WorkflowType;
     submittedBy?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
     limit?: number;
     offset?: number;
   }
 ): Promise<{ expenses: ExpenseSummary[]; total: number }> {
-  const { status, workflowType, submittedBy, limit = 50, offset = 0 } = options ?? {};
+  const {
+    status,
+    workflowType,
+    submittedBy,
+    search,
+    startDate,
+    endDate,
+    limit = 10,
+    offset = 0,
+  } = options ?? {};
 
   // Build where conditions
   const conditions = [eq(expenses.tenantId, tenantId)];
@@ -645,6 +657,26 @@ export async function getExpenses(
 
   if (submittedBy) {
     conditions.push(eq(expenses.submittedBy, submittedBy));
+  }
+
+  // Text search in vendor name and invoice number
+  if (search) {
+    const searchPattern = `%${search}%`;
+    conditions.push(
+      or(
+        like(expenses.vendorName, searchPattern),
+        like(expenses.invoiceNumber ?? sql`''`, searchPattern)
+      )!
+    );
+  }
+
+  // Date range filtering
+  if (startDate) {
+    conditions.push(gte(expenses.expenseDate, startDate));
+  }
+
+  if (endDate) {
+    conditions.push(lte(expenses.expenseDate, endDate));
   }
 
   // Get total count

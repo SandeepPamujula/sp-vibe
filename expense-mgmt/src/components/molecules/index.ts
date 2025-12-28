@@ -18,3 +18,6 @@ export type { FileUploadZoneProps, FileWithPreview } from './FileUploadZone';
 
 export { NatureOfExpenseSelect } from './NatureOfExpenseSelect';
 export type { NatureOfExpenseSelectProps } from './NatureOfExpenseSelect';
+
+export { ExpenseListFilters } from './ExpenseListFilters';
+export type { ExpenseListFiltersProps, ExpenseFilterState } from './ExpenseListFilters';
