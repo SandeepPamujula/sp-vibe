@@ -31,6 +31,8 @@ export {
   updateExpense,
   deleteExpense,
   submitExpense,
+  approveExpense,
+  rejectExpense,
   getExpenseById,
   getExpenses,
   getPendingExpensesForApproval,
