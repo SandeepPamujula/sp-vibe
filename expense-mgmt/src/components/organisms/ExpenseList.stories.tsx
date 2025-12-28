@@ -274,7 +274,7 @@ export const ManyExpenses: Story = {
       vendorName: `Vendor ${i + 1}`,
       amount: `${(i + 1) * 1000}.00`,
       natureOfExpense: `Expense Type ${i + 1}`,
-      status: ['draft', 'submitted', 'approved', 'rejected'][i % 4] as const,
+      status: (['draft', 'submitted', 'approved', 'rejected'] as const)[i % 4],
       workflowType: 'petty' as const,
       submitterName: `User ${i + 1}`,
       createdAt: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),

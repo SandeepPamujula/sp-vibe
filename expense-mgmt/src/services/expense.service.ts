@@ -585,9 +585,9 @@ export async function getExpenseById(
     actedAt: r.approval.actedAt ?? null,
   }));
 
-  // Get attachments
+  // Get attachments (join with expenses to ensure tenant filtering and prevent duplicates)
   const attachmentsResult = await db
-    .select({
+    .selectDistinct({
       id: expenseAttachments.id,
       fileName: expenseAttachments.fileName,
       contentType: expenseAttachments.contentType,
@@ -595,7 +595,8 @@ export async function getExpenseById(
       uploadedAt: expenseAttachments.uploadedAt,
     })
     .from(expenseAttachments)
-    .where(eq(expenseAttachments.expenseId, expenseId))
+    .innerJoin(expenses, eq(expenses.id, expenseAttachments.expenseId))
+    .where(and(eq(expenseAttachments.expenseId, expenseId), eq(expenses.tenantId, tenantId)))
     .orderBy(asc(expenseAttachments.uploadedAt));
 
   // Get history count

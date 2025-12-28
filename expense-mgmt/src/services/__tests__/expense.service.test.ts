@@ -165,9 +165,17 @@ jest.mock('@/lib/db', () => {
     offset: jest.fn(() => result),
   });
 
+  const createSelectDistinctChain = (result: unknown[] = []) => ({
+    from: jest.fn().mockReturnThis(),
+    innerJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn(() => result),
+  });
+
   return {
     db: {
       select: jest.fn(() => createSelectChain([])),
+      selectDistinct: jest.fn(() => createSelectDistinctChain([])),
       insert: jest.fn((table) => ({
         values: jest.fn((values) => {
           insertCalls.push({ table, values });
@@ -686,6 +694,14 @@ describe('Expense Service', () => {
         leftJoin: jest.fn().mockReturnThis(),
         orderBy: jest.fn(() => []),
         limit: jest.fn(() => []),
+      }));
+
+      // Mock selectDistinct for attachments query
+      (db.selectDistinct as jest.Mock).mockImplementation(() => ({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn(() => []),
       }));
 
       const result = await getExpenseById('expense-123', 'tenant-123');
