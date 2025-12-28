@@ -585,9 +585,9 @@ export async function getExpenseById(
     actedAt: r.approval.actedAt ?? null,
   }));
 
-  // Get attachments
+  // Get attachments (expenseId is already validated to belong to tenant above)
   const attachmentsResult = await db
-    .select({
+    .selectDistinct({
       id: expenseAttachments.id,
       fileName: expenseAttachments.fileName,
       contentType: expenseAttachments.contentType,

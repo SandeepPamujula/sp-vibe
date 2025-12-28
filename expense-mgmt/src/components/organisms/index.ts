@@ -16,4 +16,7 @@ export type { ExpenseSubmissionFormProps } from './ExpenseSubmissionForm';
 export { ExpenseList } from './ExpenseList';
 export type { ExpenseListProps } from './ExpenseList';
 
+export { ExpenseDetail } from './ExpenseDetail';
+export type { ExpenseDetailProps } from './ExpenseDetail';
+
 export type { HeaderProps } from './Header';

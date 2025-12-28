@@ -8,7 +8,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { Input, DateInput, CurrencyInput, Textarea, Button } from '@/components/atoms';
 import {
@@ -81,12 +81,15 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
   // File upload state
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [draftExpenseId, setDraftExpenseId] = useState<string | null>(null);
+  // Track uploaded file names to prevent duplicate uploads
+  const uploadedFileNamesRef = useRef<Set<string>>(new Set());
 
   // File upload hook (only initialized after draft is created)
   const fileUpload = useFileUpload({
     expenseId: draftExpenseId || '',
-    onUploadComplete: () => {
-      // File upload completed successfully
+    onUploadComplete: (uploadedFile) => {
+      // Track uploaded file name
+      uploadedFileNamesRef.current.add(uploadedFile.fileName);
     },
     onUploadError: (_file, error) => {
       setErrors((prev) => ({ ...prev, attachments: error }));
@@ -264,19 +267,24 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
 
   // Upload files when draft is created/updated
   useEffect(() => {
-    if (
-      draftExpenseId &&
-      files.length > 0 &&
-      files.some((f) => !fileUpload.uploadedFiles.find((uf) => uf.fileName === f.name))
-    ) {
-      const newFiles = files.filter(
-        (f) => !fileUpload.uploadedFiles.find((uf) => uf.fileName === f.name)
-      );
-      if (newFiles.length > 0) {
-        fileUpload.uploadFiles(newFiles);
-      }
+    if (!draftExpenseId || files.length === 0) {
+      return;
     }
-  }, [draftExpenseId, files, fileUpload]);
+
+    // Filter out files that have already been uploaded (check both ref and uploadedFiles)
+    const newFiles = files.filter((f) => {
+      const alreadyUploaded =
+        uploadedFileNamesRef.current.has(f.name) ||
+        fileUpload.uploadedFiles.some((uf) => uf.fileName === f.name);
+      return !alreadyUploaded;
+    });
+
+    if (newFiles.length > 0) {
+      // Mark files as being uploaded immediately to prevent duplicate calls
+      newFiles.forEach((f) => uploadedFileNamesRef.current.add(f.name));
+      fileUpload.uploadFiles(newFiles);
+    }
+  }, [draftExpenseId, files, fileUpload.uploadedFiles, fileUpload.uploadFiles]);
 
   // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {

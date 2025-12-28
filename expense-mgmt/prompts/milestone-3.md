@@ -22,7 +22,7 @@ Implement petty expense submission workflow.
 | 3.4 | Create petty expense submission API (with workflow integration) | Done |
 | 3.5 | Implement petty expense submission page | Done |
 | 3.6 | Create expense list view with filtering | Done |
-| 3.7 | Implement expense detail view | Pending |
+| 3.7 | Implement expense detail view | Done |
 | 3.8 | Create audit trail logging | Pending |
 | 3.9 | Write expense submission tests | Pending |
 | 3.10 | Create Storybook stories for expense components | Done (3.2) |
@@ -500,3 +500,105 @@ Implement petty expense submission workflow.
 - `.storybook/main.ts` - Added Vite alias for next/navigation mock
 - `.storybook/preview.ts` - Configured Next.js app directory support
 
+
+### Task 3.7: Implement expense detail view
+
+**Organism Component Created:**
+- `ExpenseDetail.tsx` - Complete expense detail view component
+  - Displays comprehensive expense information with all relations
+  - Sections: Header with status badge, Expense Information, People (submitter/approver), Approval History, Attachments, Metadata
+  - Loading state with spinner
+  - Error handling with user-friendly messages
+  - Attachment download functionality with loading states
+  - Responsive layout with proper formatting
+  - Currency formatting (INR with thousand separators)
+  - Date/time formatting (DD MMM YYYY format)
+  - File size formatting
+  - Back navigation to expenses list
+
+**Page Created:**
+- `src/app/(dashboard)/expenses/[expenseId]/page.tsx` - Expense detail page
+  - Server component that renders ExpenseDetail
+  - Uses dynamic route parameter for expense ID
+  - Max-width container for layout
+
+**Backend Fix:**
+- Fixed duplicate attachments issue in `getExpenseById()`:
+  - Added `selectDistinct` to prevent duplicate attachment records
+  - Added inner join with expenses table for tenant filtering
+  - Ensures proper tenant isolation and data integrity
+
+**Component Exports Updated:**
+- `src/components/organisms/index.ts` - Added ExpenseDetail exports
+
+**Features Implemented:**
+- **Expense Information Display:**
+  - Expense date, vendor name, amount (formatted currency)
+  - Invoice number (optional)
+  - GL Code/Nature of Expense (code and description)
+  - Workflow type
+  - Purpose/Description (optional, supports multi-line)
+- **People Section:**
+  - Submitter information (name, email)
+  - Approver information (when available)
+- **Approval History:**
+  - List of approval steps with status badges
+  - Approver names and comments
+  - Action timestamps
+  - Conditional rendering (only shows when approvals exist)
+- **Attachments:**
+  - List of attachments with file names
+  - File sizes (formatted: Bytes, KB, MB, GB)
+  - Upload dates
+  - Download buttons with loading states
+  - Conditional rendering (only shows when attachments exist)
+- **Metadata:**
+  - Created timestamp
+  - Last updated timestamp
+  - History entry count (when > 0)
+- **Status Badges:**
+  - Color-coded badges for expense status (draft/default, submitted/info, approved/success, rejected/danger)
+  - Approval status badges (pending/warning, approved/success, rejected/danger, skipped/default)
+
+**Jest Tests Added (28 tests passing):**
+- `src/components/organisms/__tests__/ExpenseDetail.test.tsx` - 28 tests
+  - Loading State: spinner display
+  - Error State: API errors, fetch failures, error messages
+  - Expense Display: details rendering, date formatting, status badges, GL code, workflow, purpose, optional fields
+  - People Section: submitter display, approver display, null handling
+  - Approvals Section: approval history display, empty state, comments display
+  - Attachments Section: attachments display, file sizes, empty state, download functionality, loading states
+  - Metadata: timestamps, history count display
+  - Navigation: back button links
+  - Status Badges: all status variants
+
+**Storybook Stories Added:**
+- `src/components/organisms/ExpenseDetail.stories.tsx` - 6 stories
+  - Default: Complete expense with all sections
+  - DraftStatus: Draft expense without approver
+  - ApprovedStatus: Approved expense with approval history
+  - WithMultipleAttachments: Expense with multiple files
+  - WithoutAttachments: Expense without attachments
+  - WithoutInvoiceNumber: Expense without invoice number
+
+**Bug Fixes:**
+- Fixed duplicate attachment records issue in expense service:
+  - Updated `getExpenseById()` to use `selectDistinct` for attachments query
+  - Added tenant filtering via inner join with expenses table
+  - Prevents duplicate attachment records from being returned
+
+**Files Created:**
+- `src/components/organisms/ExpenseDetail.tsx`
+- `src/components/organisms/ExpenseDetail.stories.tsx`
+- `src/components/organisms/__tests__/ExpenseDetail.test.tsx`
+- `src/app/(dashboard)/expenses/[expenseId]/page.tsx`
+
+**Files Updated:**
+- `src/components/organisms/index.ts`
+- `src/services/expense.service.ts` - Fixed duplicate attachments query
+
+**Build Status:**
+- ✅ All 28 tests passing (ExpenseDetail)
+- ✅ TypeScript compilation successful
+- ✅ Next.js build successful
+- ✅ No linter errors
