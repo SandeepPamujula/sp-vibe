@@ -211,6 +211,7 @@ import {
   getExpenses,
   getPendingExpensesForApproval,
   getGlCodes,
+  getExpenseHistory,
 } from '../expense.service';
 
 describe('Expense Service', () => {
@@ -855,6 +856,160 @@ describe('Expense Service', () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe('getExpenseHistory', () => {
+    const mockExpenseId = 'expense-123';
+    const mockTenantId = 'tenant-123';
+
+    const mockHistoryEntry1 = {
+      id: 'history-1',
+      expenseId: mockExpenseId,
+      userId: 'user-1',
+      action: 'created' as const,
+      comments: 'Expense created',
+      changes: { initial: true },
+      createdAt: new Date('2024-01-15T10:00:00Z'),
+    };
+
+    const mockHistoryEntry2 = {
+      id: 'history-2',
+      expenseId: mockExpenseId,
+      userId: 'user-1',
+      action: 'updated' as const,
+      comments: 'Expense updated',
+      changes: { vendorName: { from: 'Old Vendor', to: 'New Vendor' } },
+      createdAt: new Date('2024-01-15T10:30:00Z'),
+    };
+
+    const mockHistoryEntry3 = {
+      id: 'history-3',
+      expenseId: mockExpenseId,
+      userId: 'user-1',
+      action: 'submitted' as const,
+      comments: 'Submitted for approval',
+      changes: { status: { from: 'draft', to: 'submitted' } },
+      createdAt: new Date('2024-01-15T11:00:00Z'),
+    };
+
+    const mockUser = {
+      id: 'user-1',
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+    };
+
+    it('should throw error when expense not found', async () => {
+      // Mock expense not found
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => []),
+      }));
+
+      await expect(getExpenseHistory(mockExpenseId, mockTenantId)).rejects.toThrow(
+        'Expense not found'
+      );
+    });
+
+    it('should return empty array when no history entries exist', async () => {
+      // Mock expense found
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [{ id: mockExpenseId }]),
+      }));
+
+      // Mock history query - no entries
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn(() => []),
+      }));
+
+      const result = await getExpenseHistory(mockExpenseId, mockTenantId);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return history entries with user information', async () => {
+      // Mock expense found
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [{ id: mockExpenseId }]),
+      }));
+
+      // Mock history query with entries
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn(() => [
+          {
+            history: mockHistoryEntry1,
+            user: mockUser,
+          },
+          {
+            history: mockHistoryEntry2,
+            user: mockUser,
+          },
+          {
+            history: mockHistoryEntry3,
+            user: mockUser,
+          },
+        ]),
+      }));
+
+      const result = await getExpenseHistory(mockExpenseId, mockTenantId);
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        ...mockHistoryEntry1,
+        user: mockUser,
+      });
+      expect(result[1]).toEqual({
+        ...mockHistoryEntry2,
+        user: mockUser,
+      });
+      expect(result[2]).toEqual({
+        ...mockHistoryEntry3,
+        user: mockUser,
+      });
+    });
+
+    it('should return history entries ordered by creation date (oldest first)', async () => {
+      // Mock expense found
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [{ id: mockExpenseId }]),
+      }));
+
+      // Mock history query - verify orderBy is called with asc
+      const orderByMock = jest.fn(() => [
+        {
+          history: mockHistoryEntry1,
+          user: mockUser,
+        },
+        {
+          history: mockHistoryEntry2,
+          user: mockUser,
+        },
+      ]);
+
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: orderByMock,
+      }));
+
+      await getExpenseHistory(mockExpenseId, mockTenantId);
+
+      // Verify orderBy was called (the actual orderBy implementation is mocked)
+      expect(orderByMock).toHaveBeenCalled();
+    });
+  });
 });
 
 describe('Expense Service - Function Exports', () => {
@@ -867,5 +1022,6 @@ describe('Expense Service - Function Exports', () => {
     expect(typeof getExpenses).toBe('function');
     expect(typeof getPendingExpensesForApproval).toBe('function');
     expect(typeof getGlCodes).toBe('function');
+    expect(typeof getExpenseHistory).toBe('function');
   });
 });

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { Badge, Button, Spinner } from '@/components/atoms';
+import { ExpenseAuditTrail } from '@/components/molecules';
 import type { ExpenseWithRelations } from '@/types/entities';
 
 export interface ExpenseDetailProps {
@@ -291,32 +292,34 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
       </div>
 
       {/* People Section */}
-      <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">People</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Submitted By
-            </label>
-            <p className="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-              {expense.submitter.name}
-            </p>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">{expense.submitter.email}</p>
-          </div>
-
-          {expense.approver && (
+      {expense.submitter && (
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">People</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Approved By
+                Submitted By
               </label>
               <p className="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                {expense.approver.name}
+                {expense.submitter.name}
               </p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">{expense.approver.email}</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">{expense.submitter.email}</p>
             </div>
-          )}
+
+            {expense.approver && (
+              <div>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Approved By
+                </label>
+                <p className="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                  {expense.approver.name}
+                </p>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">{expense.approver.email}</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Approvals Section */}
       {expense.approvals.length > 0 && (
@@ -403,6 +406,16 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Audit Trail Section */}
+      {expense.historyCount > 0 && (
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+            Audit Trail
+          </h2>
+          <ExpenseAuditTrail expenseId={expense.id} />
         </div>
       )}
 
