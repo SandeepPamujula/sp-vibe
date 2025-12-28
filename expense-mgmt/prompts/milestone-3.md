@@ -449,3 +449,54 @@ Implement petty expense submission workflow.
 - ✅ Next.js build successful
 - ✅ No linter errors
 
+**Pagination Update:**
+- Changed default pagination limit from 20 to 10 records per page
+- Updated ExpenseList component to use limit: 10
+- Updated expense service default limit to 10
+- Updated API route default limit to 10
+- Updated all test mocks to use limit: 10
+
+**Storybook Stories Added:**
+- `src/components/molecules/ExpenseListFilters.stories.tsx` - 5 stories
+  - Default: No active filters
+  - WithActiveFilters: Status, workflow type, and search filters active
+  - WithDateRange: Date range filters applied
+  - WithAllFilters: All filters active with values
+  - WithCallback: Demonstrates filter change callback
+- `src/components/organisms/ExpenseList.stories.tsx` - 7 stories
+  - Default: List with 4 expenses (all status types)
+  - Loading: Loading spinner state
+  - Empty: Empty state when no expenses found
+  - WithPagination: Pagination controls visible (25 total, 3 pages)
+  - WithFilters: Initial filters applied (status: submitted)
+  - ErrorState: Error message display
+  - ManyExpenses: 10 expenses in table
+
+**Storybook Configuration:**
+- Created `.storybook/mocks/next-navigation.ts` - Mock implementation for Next.js router hooks
+- Updated `.storybook/main.ts` - Added Vite alias to use mock for `next/navigation` in Storybook
+- Fixed router context issues by aliasing `next/navigation` to mock implementation
+- All stories properly configured with Next.js integration parameters
+
+**Code Quality Fixes:**
+- Fixed import order issues (next/navigation before react, next/link before react)
+- Fixed TypeScript errors in test files (optional chaining for array access)
+- Fixed Jest mock initialization error (moved MockLink inside jest.mock callback)
+- Removed all console.log statements from Storybook stories
+- Fixed React display-name error in test mocks
+- All ESLint issues resolved in Storybook-related files
+
+**Files Created:**
+- `src/components/molecules/ExpenseListFilters.stories.tsx`
+- `src/components/organisms/ExpenseList.stories.tsx`
+- `.storybook/mocks/next-navigation.ts`
+
+**Files Updated:**
+- `src/components/molecules/ExpenseListFilters.tsx` - Fixed import order
+- `src/components/organisms/ExpenseList.tsx` - Fixed import order
+- `src/components/organisms/__tests__/ExpenseList.test.tsx` - Fixed mock initialization and TypeScript errors
+- `src/app/api/expenses/route.ts` - Updated default limit to 10
+- `src/services/expense.service.ts` - Updated default limit to 10
+- `.storybook/main.ts` - Added Vite alias for next/navigation mock
+- `.storybook/preview.ts` - Configured Next.js app directory support
+
