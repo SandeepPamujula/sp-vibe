@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 
 import { Badge, Button, Spinner } from '@/components/atoms';
+import { ApprovalModal } from '@/components/molecules';
 import { PAGINATION_DEFAULTS } from '@/constants/query.constants';
 import type { ExpenseSummary } from '@/types/entities';
 
@@ -65,6 +66,8 @@ export function PendingApprovalsList() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
 
   const fetchPendingApprovals = useCallback(async () => {
     setLoading(true);
@@ -202,12 +205,24 @@ export function PendingApprovalsList() {
                         {expense.submitterName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                        <Link
-                          href={`/expenses/${expense.id}`}
-                          className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium"
-                        >
-                          Review
-                        </Link>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedExpenseId(expense.id);
+                              setIsApprovalModalOpen(true);
+                            }}
+                          >
+                            Approve/Reject
+                          </Button>
+                          <Link
+                            href={`/expenses/${expense.id}`}
+                            className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium"
+                          >
+                            View Details
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -243,6 +258,22 @@ export function PendingApprovalsList() {
             </div>
           )}
         </>
+      )}
+
+      {/* Approval Modal */}
+      {selectedExpenseId && (
+        <ApprovalModal
+          expenseId={selectedExpenseId}
+          isOpen={isApprovalModalOpen}
+          onClose={() => {
+            setIsApprovalModalOpen(false);
+            setSelectedExpenseId(null);
+          }}
+          onSuccess={() => {
+            // Refresh the list after approval/rejection
+            fetchPendingApprovals();
+          }}
+        />
       )}
     </div>
   );

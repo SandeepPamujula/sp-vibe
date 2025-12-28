@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { Badge, Button, Spinner } from '@/components/atoms';
-import { ExpenseAuditTrail } from '@/components/molecules';
+import { ApprovalModal, ExpenseAuditTrail } from '@/components/molecules';
 import type { ExpenseWithRelations } from '@/types/entities';
 
 export interface ExpenseDetailProps {
@@ -123,30 +123,32 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloadingAttachment, setDownloadingAttachment] = useState<string | null>(null);
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+
+  const fetchExpense = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/expenses/${expenseId}`);
+      const result: ExpenseDetailResponse = await response.json();
+
+      if (!result.success) {
+        setError(result.error?.message || 'Failed to load expense');
+        return;
+      }
+
+      setExpense(result.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load expense');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchExpense() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/expenses/${expenseId}`);
-        const result: ExpenseDetailResponse = await response.json();
-
-        if (!result.success) {
-          setError(result.error?.message || 'Failed to load expense');
-          return;
-        }
-
-        setExpense(result.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load expense');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchExpense();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expenseId]);
 
   const handleDownloadAttachment = async (attachmentId: string) => {
@@ -213,9 +215,16 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
             </p>
           </div>
         </div>
-        <Badge variant={STATUS_BADGE_VARIANTS[expense.status] || 'default'} size="md">
-          {STATUS_LABELS[expense.status] || expense.status}
-        </Badge>
+        <div className="flex items-center gap-3">
+          {expense.status === 'submitted' && (
+            <Button variant="primary" size="sm" onClick={() => setIsApprovalModalOpen(true)}>
+              Review & Approve
+            </Button>
+          )}
+          <Badge variant={STATUS_BADGE_VARIANTS[expense.status] || 'default'} size="md">
+            {STATUS_LABELS[expense.status] || expense.status}
+          </Badge>
+        </div>
       </div>
 
       {/* Expense Details Section */}
@@ -425,6 +434,17 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
         <p>Last Updated: {formatDateTime(expense.updatedAt)}</p>
         {expense.historyCount > 0 && <p>History Entries: {expense.historyCount}</p>}
       </div>
+
+      {/* Approval Modal */}
+      <ApprovalModal
+        expenseId={expenseId}
+        isOpen={isApprovalModalOpen}
+        onClose={() => setIsApprovalModalOpen(false)}
+        onSuccess={() => {
+          // Refresh expense data after approval/rejection
+          fetchExpense();
+        }}
+      />
     </div>
   );
 }

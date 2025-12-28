@@ -24,3 +24,6 @@ export type { ExpenseListFiltersProps, ExpenseFilterState } from './ExpenseListF
 
 export { ExpenseAuditTrail } from './ExpenseAuditTrail';
 export type { ExpenseAuditTrailProps } from './ExpenseAuditTrail';
+
+export { ApprovalModal } from './ApprovalModal';
+export type { ApprovalModalProps } from './ApprovalModal';
