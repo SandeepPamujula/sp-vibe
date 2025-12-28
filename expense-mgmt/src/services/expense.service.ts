@@ -464,6 +464,211 @@ export async function submitExpense(
   };
 }
 
+/**
+ * Approve an expense at the current workflow step
+ *
+ * This function:
+ * 1. Validates the expense is in submitted status
+ * 2. Finds the pending approval record for the current step
+ * 3. Verifies the user has approver role
+ * 4. Updates the expense_approval record (status, approver_id, acted_at, comments)
+ * 5. If step is final, updates expenses.status to 'approved' and sets approvedBy
+ * 6. Records action in expense_history
+ */
+export async function approveExpense(
+  expenseId: string,
+  tenantId: string,
+  approverId: string,
+  comments?: string
+): Promise<void> {
+  // Get expense with validation
+  const expenseResult = await db
+    .select()
+    .from(expenses)
+    .where(and(eq(expenses.id, expenseId), eq(expenses.tenantId, tenantId)))
+    .limit(1);
+
+  const expense = expenseResult[0];
+  if (!expense) {
+    throw new Error('Expense not found');
+  }
+
+  if (expense.status !== 'submitted') {
+    throw new Error('Only submitted expenses can be approved');
+  }
+
+  if (!expense.currentStepId) {
+    throw new Error('Expense has no current workflow step');
+  }
+
+  // Get the current workflow step
+  const stepResult = await db
+    .select({
+      id: workflowSteps.id,
+      stepOrder: workflowSteps.stepOrder,
+      name: workflowSteps.name,
+      approverRole: workflowSteps.approverRole,
+      isFinal: workflowSteps.isFinal,
+    })
+    .from(workflowSteps)
+    .where(eq(workflowSteps.id, expense.currentStepId))
+    .limit(1);
+
+  const step = stepResult[0];
+  if (!step) {
+    throw new Error('Workflow step not found');
+  }
+
+  // Find the pending approval record for this expense and step
+  const approvalResult = await db
+    .select()
+    .from(expenseApprovals)
+    .where(
+      and(
+        eq(expenseApprovals.expenseId, expenseId),
+        eq(expenseApprovals.workflowStepId, expense.currentStepId),
+        eq(expenseApprovals.status, 'pending')
+      )
+    )
+    .limit(1);
+
+  const approval = approvalResult[0];
+  if (!approval) {
+    throw new Error('No pending approval found for this expense');
+  }
+
+  const now = new Date();
+
+  // Update the approval record
+  await db
+    .update(expenseApprovals)
+    .set({
+      status: 'approved',
+      approverId,
+      actedAt: now,
+      comments: comments ?? null,
+    })
+    .where(eq(expenseApprovals.id, approval.id));
+
+  // If this is the final step, update expense status
+  if (step.isFinal) {
+    await db
+      .update(expenses)
+      .set({
+        status: 'approved',
+        approvedBy: approverId,
+        updatedAt: now,
+      })
+      .where(eq(expenses.id, expenseId));
+  }
+
+  // Log history entry
+  await db.insert(expenseHistory).values({
+    expenseId,
+    userId: approverId,
+    action: 'approved',
+    comments: comments ?? 'Approved',
+    changes: {
+      status: { from: 'submitted', to: 'approved' },
+      approvalStatus: { from: 'pending', to: 'approved' },
+    },
+  });
+}
+
+/**
+ * Reject an expense at the current workflow step
+ *
+ * This function:
+ * 1. Validates the expense is in submitted status
+ * 2. Finds the pending approval record for the current step
+ * 3. Verifies the user has approver role
+ * 4. Updates the expense_approval record (status, approver_id, acted_at, comments)
+ * 5. Updates expenses.status to 'rejected' (rejection always final)
+ * 6. Records action in expense_history
+ */
+export async function rejectExpense(
+  expenseId: string,
+  tenantId: string,
+  approverId: string,
+  comments: string
+): Promise<void> {
+  if (!comments || comments.trim().length === 0) {
+    throw new Error('Rejection reason is required');
+  }
+
+  // Get expense with validation
+  const expenseResult = await db
+    .select()
+    .from(expenses)
+    .where(and(eq(expenses.id, expenseId), eq(expenses.tenantId, tenantId)))
+    .limit(1);
+
+  const expense = expenseResult[0];
+  if (!expense) {
+    throw new Error('Expense not found');
+  }
+
+  if (expense.status !== 'submitted') {
+    throw new Error('Only submitted expenses can be rejected');
+  }
+
+  if (!expense.currentStepId) {
+    throw new Error('Expense has no current workflow step');
+  }
+
+  // Find the pending approval record for this expense and step
+  const approvalResult = await db
+    .select()
+    .from(expenseApprovals)
+    .where(
+      and(
+        eq(expenseApprovals.expenseId, expenseId),
+        eq(expenseApprovals.workflowStepId, expense.currentStepId),
+        eq(expenseApprovals.status, 'pending')
+      )
+    )
+    .limit(1);
+
+  const approval = approvalResult[0];
+  if (!approval) {
+    throw new Error('No pending approval found for this expense');
+  }
+
+  const now = new Date();
+
+  // Update the approval record
+  await db
+    .update(expenseApprovals)
+    .set({
+      status: 'rejected',
+      approverId,
+      actedAt: now,
+      comments,
+    })
+    .where(eq(expenseApprovals.id, approval.id));
+
+  // Rejection always updates expense status (rejection is final)
+  await db
+    .update(expenses)
+    .set({
+      status: 'rejected',
+      updatedAt: now,
+    })
+    .where(eq(expenses.id, expenseId));
+
+  // Log history entry
+  await db.insert(expenseHistory).values({
+    expenseId,
+    userId: approverId,
+    action: 'rejected',
+    comments,
+    changes: {
+      status: { from: 'submitted', to: 'rejected' },
+      approvalStatus: { from: 'pending', to: 'rejected' },
+    },
+  });
+}
+
 // ============================================================================
 // Query Operations
 // ============================================================================

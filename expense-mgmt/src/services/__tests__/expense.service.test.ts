@@ -207,6 +207,8 @@ import {
   updateExpense,
   deleteExpense,
   submitExpense,
+  approveExpense,
+  rejectExpense,
   getExpenseById,
   getExpenses,
   getPendingExpensesForApproval,
@@ -660,6 +662,299 @@ describe('Expense Service', () => {
         comments: 'Submitted for approval',
         changes: { status: { from: 'draft', to: 'submitted' } },
       });
+    });
+  });
+
+  describe('approveExpense', () => {
+    const mockSubmittedExpense = {
+      ...mockExpense,
+      status: 'submitted' as const,
+      workflowId: 'workflow-petty-123',
+      currentStepId: 'step-123',
+    };
+
+    const mockPendingApproval = {
+      id: 'approval-123',
+      expenseId: 'expense-123',
+      workflowStepId: 'step-123',
+      approverId: null,
+      status: 'pending' as const,
+      comments: null,
+      actedAt: null,
+      createdAt: new Date('2024-01-15'),
+    };
+
+    beforeEach(() => {
+      insertCalls.length = 0;
+      updateCalls.length = 0;
+    });
+
+    it('should approve expense successfully', async () => {
+      // First call: get expense
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockSubmittedExpense]),
+      }));
+
+      // Second call: get workflow step
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockWorkflowStep]),
+      }));
+
+      // Third call: get pending approval
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockPendingApproval]),
+      }));
+
+      await approveExpense('expense-123', 'tenant-123', 'approver-123', 'Looks good');
+
+      // Verify approval record was updated
+      expect(db.update).toHaveBeenCalledTimes(2); // approval + expense
+      expect(updateCalls[0]?.values).toMatchObject({
+        status: 'approved',
+        approverId: 'approver-123',
+        comments: 'Looks good',
+      });
+
+      // Verify expense was updated (final step)
+      expect(updateCalls[1]?.values).toMatchObject({
+        status: 'approved',
+        approvedBy: 'approver-123',
+      });
+
+      // Verify history entry was created
+      expect(db.insert).toHaveBeenCalled();
+      expect(insertCalls[0]?.values).toMatchObject({
+        expenseId: 'expense-123',
+        userId: 'approver-123',
+        action: 'approved',
+        comments: 'Looks good',
+      });
+    });
+
+    it('should approve expense without comments', async () => {
+      let callCount = 0;
+      (db.select as jest.Mock).mockImplementation(() => {
+        callCount++;
+        return {
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          limit: jest.fn(() => {
+            if (callCount === 1) return [mockSubmittedExpense];
+            if (callCount === 2) return [mockWorkflowStep];
+            if (callCount === 3) return [mockPendingApproval];
+            return [];
+          }),
+        };
+      });
+
+      await approveExpense('expense-123', 'tenant-123', 'approver-123');
+
+      expect(updateCalls[0]?.values).toMatchObject({
+        comments: null,
+      });
+      expect(insertCalls[0]?.values).toMatchObject({
+        comments: 'Approved',
+      });
+    });
+
+    it('should throw error when expense not found', async () => {
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => []),
+      }));
+
+      await expect(approveExpense('non-existent', 'tenant-123', 'approver-123')).rejects.toThrow(
+        'Expense not found'
+      );
+    });
+
+    it('should throw error when expense is not submitted', async () => {
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockExpense]), // draft status
+      }));
+
+      await expect(approveExpense('expense-123', 'tenant-123', 'approver-123')).rejects.toThrow(
+        'Only submitted expenses can be approved'
+      );
+    });
+
+    it('should throw error when expense has no current step', async () => {
+      const expenseWithoutStep = {
+        ...mockSubmittedExpense,
+        currentStepId: null,
+      };
+
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [expenseWithoutStep]),
+      }));
+
+      await expect(approveExpense('expense-123', 'tenant-123', 'approver-123')).rejects.toThrow(
+        'Expense has no current workflow step'
+      );
+    });
+
+    it('should throw error when no pending approval found', async () => {
+      (db.select as jest.Mock)
+        .mockImplementationOnce(() => ({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          limit: jest.fn(() => [mockSubmittedExpense]),
+        }))
+        .mockImplementationOnce(() => ({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          limit: jest.fn(() => [mockWorkflowStep]),
+        }))
+        .mockImplementationOnce(() => ({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          limit: jest.fn(() => []), // No pending approval
+        }));
+
+      await expect(approveExpense('expense-123', 'tenant-123', 'approver-123')).rejects.toThrow(
+        'No pending approval found for this expense'
+      );
+    });
+  });
+
+  describe('rejectExpense', () => {
+    const mockSubmittedExpense = {
+      ...mockExpense,
+      status: 'submitted' as const,
+      workflowId: 'workflow-petty-123',
+      currentStepId: 'step-123',
+    };
+
+    const mockPendingApproval = {
+      id: 'approval-123',
+      expenseId: 'expense-123',
+      workflowStepId: 'step-123',
+      approverId: null,
+      status: 'pending' as const,
+      comments: null,
+      actedAt: null,
+      createdAt: new Date('2024-01-15'),
+    };
+
+    beforeEach(() => {
+      insertCalls.length = 0;
+      updateCalls.length = 0;
+    });
+
+    it('should reject expense successfully', async () => {
+      // First call: get expense
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockSubmittedExpense]),
+      }));
+
+      // Second call: get pending approval
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockPendingApproval]),
+      }));
+
+      await rejectExpense('expense-123', 'tenant-123', 'approver-123', 'Missing documentation');
+
+      // Verify approval record was updated
+      expect(db.update).toHaveBeenCalledTimes(2); // approval + expense
+      expect(updateCalls[0]?.values).toMatchObject({
+        status: 'rejected',
+        approverId: 'approver-123',
+        comments: 'Missing documentation',
+      });
+
+      // Verify expense was updated (rejection is always final)
+      expect(updateCalls[1]?.values).toMatchObject({
+        status: 'rejected',
+      });
+
+      // Verify history entry was created
+      expect(db.insert).toHaveBeenCalled();
+      expect(insertCalls[0]?.values).toMatchObject({
+        expenseId: 'expense-123',
+        userId: 'approver-123',
+        action: 'rejected',
+        comments: 'Missing documentation',
+      });
+    });
+
+    it('should throw error when comments are missing', async () => {
+      await expect(rejectExpense('expense-123', 'tenant-123', 'approver-123', '')).rejects.toThrow(
+        'Rejection reason is required'
+      );
+    });
+
+    it('should throw error when expense not found', async () => {
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => []),
+      }));
+
+      await expect(
+        rejectExpense('non-existent', 'tenant-123', 'approver-123', 'Missing docs')
+      ).rejects.toThrow('Expense not found');
+    });
+
+    it('should throw error when expense is not submitted', async () => {
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [mockExpense]), // draft status
+      }));
+
+      await expect(
+        rejectExpense('expense-123', 'tenant-123', 'approver-123', 'Missing docs')
+      ).rejects.toThrow('Only submitted expenses can be rejected');
+    });
+
+    it('should throw error when expense has no current step', async () => {
+      const expenseWithoutStep = {
+        ...mockSubmittedExpense,
+        currentStepId: null,
+      };
+
+      (db.select as jest.Mock).mockImplementationOnce(() => ({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn(() => [expenseWithoutStep]),
+      }));
+
+      await expect(
+        rejectExpense('expense-123', 'tenant-123', 'approver-123', 'Missing docs')
+      ).rejects.toThrow('Expense has no current workflow step');
+    });
+
+    it('should throw error when no pending approval found', async () => {
+      (db.select as jest.Mock)
+        .mockImplementationOnce(() => ({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          limit: jest.fn(() => [mockSubmittedExpense]),
+        }))
+        .mockImplementationOnce(() => ({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          limit: jest.fn(() => []), // No pending approval
+        }));
+
+      await expect(
+        rejectExpense('expense-123', 'tenant-123', 'approver-123', 'Missing docs')
+      ).rejects.toThrow('No pending approval found for this expense');
     });
   });
 

@@ -19,4 +19,6 @@ export type { ExpenseListProps } from './ExpenseList';
 export { ExpenseDetail } from './ExpenseDetail';
 export type { ExpenseDetailProps } from './ExpenseDetail';
 
+export { PendingApprovalsList } from './PendingApprovalsList';
+
 export type { HeaderProps } from './Header';
