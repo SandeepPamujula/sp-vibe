@@ -40,8 +40,8 @@ export interface CreateExpenseParams {
   invoiceNumber?: string;
   vendorName: string;
   amount: number;
-  /** GL Code ID - will be mapped to glCodeId and natureOfExpense (description) */
-  natureOfExpense: string;
+  /** GL Code ID - will be mapped to glCodeId and natureOfExpense (description). Optional for drafts. */
+  natureOfExpense?: string;
   purpose?: string;
 }
 
@@ -164,9 +164,11 @@ function mapToExpenseSummary(
  * Create a new expense in draft status
  *
  * The `natureOfExpense` param is a GL Code ID. This function will:
- * 1. Look up the GL code to validate it exists
- * 2. Store the GL code description as `natureOfExpense`
- * 3. Store the GL code ID as `glCodeId`
+ * 1. Look up the GL code to validate it exists (if provided)
+ * 2. Store the GL code description as `natureOfExpense` (if provided)
+ * 3. Store the GL code ID as `glCodeId` (if provided)
+ *
+ * For drafts, natureOfExpense can be null and filled in later.
  */
 export async function createExpense(params: CreateExpenseParams): Promise<string> {
   const {
@@ -181,10 +183,14 @@ export async function createExpense(params: CreateExpenseParams): Promise<string
     purpose,
   } = params;
 
-  // Look up GL code to get description (natureOfExpense maps to glCodeId)
-  const glCode = await getGlCodeById(glCodeIdInput, tenantId);
-  if (!glCode) {
-    throw new Error('Invalid nature of expense selection');
+  // Look up GL code to get description (if provided)
+  let glCode: { id: string; code: string; description: string } | null = null;
+
+  if (glCodeIdInput) {
+    glCode = await getGlCodeById(glCodeIdInput, tenantId);
+    if (!glCode) {
+      throw new Error('Invalid nature of expense selection');
+    }
   }
 
   // Get workflow for this type (just to validate it exists)
@@ -204,8 +210,8 @@ export async function createExpense(params: CreateExpenseParams): Promise<string
       invoiceNumber: invoiceNumber ?? null,
       vendorName,
       amount: amount.toFixed(2),
-      natureOfExpense: glCode.description, // Store description as natureOfExpense
-      glCodeId: glCode.id, // Store the GL code ID
+      natureOfExpense: glCode?.description ?? null, // Store description or null
+      glCodeId: glCode?.id ?? null, // Store GL code ID or null
       purpose: purpose ?? null,
       status: 'draft',
     })
@@ -287,14 +293,23 @@ export async function updateExpense(
 
   // Handle natureOfExpense update (it's a GL Code ID)
   if (updates.natureOfExpense !== undefined) {
-    const glCode = await getGlCodeById(updates.natureOfExpense, tenantId);
-    if (!glCode) {
-      throw new Error('Invalid nature of expense selection');
+    // If natureOfExpense is provided and not empty, validate and update
+    if (updates.natureOfExpense) {
+      const glCode = await getGlCodeById(updates.natureOfExpense, tenantId);
+      if (!glCode) {
+        throw new Error('Invalid nature of expense selection');
+      }
+      changes.natureOfExpense = { from: expense.natureOfExpense, to: glCode.description };
+      changes.glCodeId = { from: expense.glCodeId, to: glCode.id };
+      updateData.natureOfExpense = glCode.description;
+      updateData.glCodeId = glCode.id;
+    } else {
+      // Clear natureOfExpense (set to null)
+      changes.natureOfExpense = { from: expense.natureOfExpense, to: null };
+      changes.glCodeId = { from: expense.glCodeId, to: null };
+      updateData.natureOfExpense = null;
+      updateData.glCodeId = null;
     }
-    changes.natureOfExpense = { from: expense.natureOfExpense, to: glCode.description };
-    changes.glCodeId = { from: expense.glCodeId, to: glCode.id };
-    updateData.natureOfExpense = glCode.description;
-    updateData.glCodeId = glCode.id;
   }
 
   if (updates.purpose !== undefined) {
@@ -352,10 +367,11 @@ export async function deleteExpense(expenseId: string, tenantId: string): Promis
  *
  * This function:
  * 1. Validates the expense is in draft status
- * 2. Links the expense to the appropriate workflow
- * 3. Creates an expense_approval record for the first workflow step
- * 4. Sets the expense's current_step_id to the pending step
- * 5. Updates the expense status to 'submitted'
+ * 2. Validates required fields are filled (including natureOfExpense)
+ * 3. Links the expense to the appropriate workflow
+ * 4. Creates an expense_approval record for the first workflow step
+ * 5. Sets the expense's current_step_id to the pending step
+ * 6. Updates the expense status to 'submitted'
  */
 export async function submitExpense(
   expenseId: string,
@@ -381,6 +397,15 @@ export async function submitExpense(
   // Verify the submitter is the owner
   if (expense.submittedBy !== userId) {
     throw new Error('Only the expense owner can submit');
+  }
+
+  // Validate required fields for submission
+  if (!expense.glCodeId || !expense.natureOfExpense) {
+    throw new Error('Nature of expense is required for submission');
+  }
+
+  if (!expense.amount || parseFloat(expense.amount) <= 0) {
+    throw new Error('Valid amount is required for submission');
   }
 
   // Get workflow for this expense type

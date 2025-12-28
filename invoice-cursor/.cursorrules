@@ -1,111 +1,25 @@
 # Invoice Cursor - Cursor Rules
 
-> **Note**: This file has been reorganized for better maintainability. Detailed documentation is split into modular files in `.cursor/docs/` directory.
-> 
-> **Quick Reference**: See sections below for essential information. For detailed documentation, refer to the files in `.cursor/docs/`.
+## Stack
+Next.js, TypeScript, DynamoDB, S3, SES, Zod, Jest
 
-## Project Overview
-Invoice Cursor is an expense invoice processing application with role-based access control for admin and accountant users.
+## Essential Rules
+1. Validate inputs with Zod schemas
+2. Handle errors gracefully - never crash
+3. Use proper TypeScript types - avoid `any`
+4. Use environment variables - never hardcode
+5. Follow existing code patterns
 
-## Documentation Structure
+## File Structure
+- Types: `src/types/` by domain
+- Schemas: `src/schemas/` Zod validation
+- Components: `src/components/` atomic design
+- Config: `src/lib/config.ts` centralized
 
-This project uses a modular documentation structure:
+## API Response Format
+`{ success: boolean, data?: T, error?: { message: string, code?: string } }`
 
-- **Requirements & Features**: See `.cursor/docs/requirements.md`
-- **Implementation Milestones**: See `.cursor/docs/milestones.md`
-- **Architecture & Deployment**: See `.cursor/docs/architecture.md`
-- **Code Standards**: See `.cursor/docs/standards.md`
-- **Development Guidelines**: See `.cursor/docs/guidelines.md`
-- **Common Patterns**: See `.cursor/docs/patterns.md`
-- **Prompt History Documentation**: See `.cursor/docs/prompt-history.md`
-
-## Quick Reference
-
-### Tech Stack
-- **Frontend & Backend**: Next.js with TypeScript
-- **Database**: DynamoDB
-- **File Storage**: Amazon S3
-- **Email Service**: Amazon SES
-- **Infrastructure**: AWS CDK
-- **Validation**: Zod
-- **Testing**: Jest, Storybook
-- **Error Tracking**: Sentry
-
-### Current Status
-**Working on**: Milestone 1.10 - Common library wrappers
-
-**Recent Completions**:
-- ✅ Task 1.7: TypeScript interfaces
-- ✅ Task 1.8: Zod schemas
-- ✅ Task 1.9: Environment variables and centralized config
-
-### Essential Rules
-
-1. **Always validate inputs** - Use Zod schemas
-2. **Handle errors gracefully** - Never let errors crash the app
-3. **Update prompt history** - Document changes in `prompts-history-milestone-{N}.md` after each prompt
-4. **Follow TypeScript best practices** - Use proper types, avoid `any`
-5. **Use environment variables** - Never hardcode config values
-6. **Maintain consistency** - Follow existing code patterns
-
-### File Organization
-
-- **Types**: `src/types/` - Organized by domain (user.ts, invoice.ts, etc.)
-- **Schemas**: `src/schemas/` - Zod validation schemas
-- **Components**: `src/components/` - Atomic Design (atoms, molecules, organisms)
-- **Backend**: `src/controllers/`, `src/services/`, `src/db/` - Layered architecture
-- **Config**: `src/lib/config.ts` - Centralized configuration
-
-### Key Design Decisions
-
-1. **Unified History System**: Comments and audit trail combined in single chronological timeline
-2. **Derived Fields**: Transactional data (submittedBy, approvedBy, etc.) derived from history
-3. **Type Organization**: Types organized in separate files with barrel exports
-4. **Centralized Config**: Environment variables validated with Zod
-
-## When Writing Code
-
-See `.cursor/docs/guidelines.md` for complete guidelines. Key points:
-
-1. Always validate inputs - Use Zod schemas
-2. Handle errors gracefully - Never let errors crash the app
-3. Log important operations - Use structured logging
-4. Write tests - Especially for business logic
-5. Follow TypeScript best practices - Use proper types
-6. Keep components small - Single responsibility principle
-7. Use environment variables - Never hardcode config
-8. Document complex logic - But prefer self-documenting code
-9. Follow Next.js conventions - App Router patterns
-10. Maintain consistency - Follow existing code patterns
-11. **Update prompt history** - Document all changes in the appropriate milestone-specific prompt history file (`prompts-history-milestone-{N}.md`) after each prompt execution
-
-## Code Review Checklist
-
-See `.cursor/docs/guidelines.md` for complete checklist. Essential items:
-
-- [ ] TypeScript types are properly defined
-- [ ] Input validation is implemented (Zod)
-- [ ] Error handling is in place
-- [ ] Tests are written (unit/integration)
-- [ ] Security considerations are addressed
-- [ ] Prompt history is updated in the appropriate milestone file
-
-## Prompt History
-
-**CRITICAL**: After completing each prompt/request, you MUST update the appropriate milestone-specific prompt history file.
-
-- Main index: `prompts-history.md`
-- Milestone files: `prompts-history-milestone-{N}.md`
-- See `.cursor/docs/prompt-history.md` for detailed format requirements
-
-## Common Patterns
-
-See `.cursor/docs/patterns.md` for code examples. Quick reference:
-
-- **API Response**: `{ success: boolean, data?: T, error?: { message: string, code?: string } }`
-- **Error Handling**: Try-catch with structured logging
-- **Validation**: Zod schema parsing
-
----
-
-**For detailed documentation, see files in `.cursor/docs/` directory.**
+## Key Decisions
+- Unified history: Comments + audit in single timeline
+- Derived fields: submittedBy, approvedBy from history
+- Centralized config with Zod validation
