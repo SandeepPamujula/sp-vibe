@@ -1,22 +1,30 @@
 /**
  * Expenses List Page
  *
- * Displays list of expenses for the current user.
- * Will be implemented in Milestone 3.
+ * Displays list of expenses for the current user with filtering and pagination.
  */
 
 import Link from 'next/link';
 
-import { getRequestContext } from '@/lib/auth/request-context';
+import { ExpenseList } from '@/components/organisms';
 
 export default async function ExpensesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; submitted?: string; draftSaved?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    submitted?: string;
+    draftSaved?: string;
+    status?: string;
+    workflowType?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: string;
+  }>;
 }) {
-  const context = await getRequestContext();
   const params = await searchParams;
-  const { error, submitted, draftSaved } = params;
+  const { error, submitted, draftSaved, status, workflowType, search, startDate, endDate } = params;
 
   return (
     <div>
@@ -61,15 +69,16 @@ export default async function ExpensesPage({
         </Link>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
-        <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-          Welcome back,{' '}
-          <span className="font-medium text-zinc-900 dark:text-white">{context?.user.name}</span>!
-        </p>
-        <p className="text-zinc-500 dark:text-zinc-500 text-sm">
-          Expenses list will be implemented in Task 3.6
-        </p>
-      </div>
+      {/* Expense List */}
+      <ExpenseList
+        initialFilters={{
+          status: (status as any) || '',
+          workflowType: (workflowType as any) || '',
+          search: search || '',
+          startDate: startDate || '',
+          endDate: endDate || '',
+        }}
+      />
     </div>
   );
 }

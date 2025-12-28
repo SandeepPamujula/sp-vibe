@@ -21,7 +21,7 @@ Implement petty expense submission workflow.
 | 3.3 | Implement file upload to S3 | Done |
 | 3.4 | Create petty expense submission API (with workflow integration) | Done |
 | 3.5 | Implement petty expense submission page | Done |
-| 3.6 | Create expense list view with filtering | Pending |
+| 3.6 | Create expense list view with filtering | Done |
 | 3.7 | Implement expense detail view | Pending |
 | 3.8 | Create audit trail logging | Pending |
 | 3.9 | Write expense submission tests | Pending |
@@ -343,4 +343,109 @@ Implement petty expense submission workflow.
 - ✅ Next.js build successful
 - ✅ No linter errors
 - ✅ All validation errors resolved
+
+### Task 3.6: Create expense list view with filtering
+
+**Molecule Component Created:**
+- `ExpenseListFilters.tsx` - Filter controls for expense list
+  - Filters: Status, Workflow Type, Text Search, Date Range (Start/End)
+  - URL synchronization for filter state persistence
+  - "Clear All" button when filters are active
+  - Responsive grid layout
+  - Type-safe filter state management
+
+**Organism Component Created:**
+- `ExpenseList.tsx` - Complete expense list view with table display
+  - Table view with columns: Date, Vendor, Amount, Nature of Expense, Status, Submitted By, Actions
+  - Status badges with color coding (draft/default, submitted/info, approved/success, rejected/danger)
+  - Currency formatting (INR with thousand separators)
+  - Date formatting (DD MMM YYYY format)
+  - Pagination controls (Previous/Next buttons with page info)
+  - Loading state with spinner
+  - Error handling with user-friendly messages
+  - Empty state message
+  - Results summary (showing X of Y expenses)
+  - Links to expense detail view (for task 3.7)
+  - Filter integration with ExpenseListFilters component
+
+**Backend Enhancements:**
+- **API Route** (`src/app/api/expenses/route.ts`):
+  - Added support for `search`, `startDate`, `endDate` query parameters
+  - Updated default limit from 50 to 20
+  - Enhanced error handling
+
+- **Expense Service** (`src/services/expense.service.ts`):
+  - Enhanced `getExpenses()` function with:
+    - Text search in vendor name and invoice number (using `like` operator)
+    - Date range filtering (using `gte` and `lte` operators)
+  - Updated default limit to 20
+  - Proper SQL query building with multiple filter conditions
+
+**Page Updates:**
+- `src/app/(dashboard)/expenses/page.tsx`:
+  - Integrated ExpenseList component
+  - Passes initial filters from URL search params
+  - Maintains success/error message display for expense submission
+
+**Component Exports Updated:**
+- `src/components/molecules/index.ts` - Added ExpenseListFilters exports
+- `src/components/organisms/index.ts` - Added ExpenseList exports
+
+**Features Implemented:**
+- **Filtering:**
+  - Status filter (draft, submitted, approved, rejected)
+  - Workflow Type filter (petty, internet)
+  - Text search (vendor name, invoice number)
+  - Date range (start date, end date)
+- **Pagination:**
+  - Previous/Next navigation
+  - Page information display
+  - Automatic page reset on filter changes
+- **Responsive Design:**
+  - Mobile-friendly table layout
+  - Responsive filter grid
+- **URL Synchronization:**
+  - Filters persist in URL for sharing/bookmarking
+  - Browser back/forward navigation support
+- **User Experience:**
+  - Loading states during data fetch
+  - Error messages for failed requests
+  - Empty state guidance
+  - Results summary
+  - Smooth scrolling on page change
+
+**Jest Tests Added (30 tests passing):**
+- `src/components/molecules/__tests__/ExpenseListFilters.test.tsx` - 11 tests
+  - Rendering: filter controls, Clear All button visibility
+  - Filter Interactions: search, status, workflow type, date range updates
+  - Clear Filters: clear all functionality
+  - Initial State: URL parameter initialization
+  - Callbacks: onFiltersChange callback integration
+- `src/components/organisms/__tests__/ExpenseList.test.tsx` - 19 tests
+  - Rendering: loading state, expense list, table headers, results summary
+  - Expense Data Display: currency formatting, date formatting, status badges, submitter names, null handling
+  - View Links: navigation links to expense detail pages
+  - Pagination: pagination display, button states, page navigation
+  - Empty State: no expenses message
+  - Error Handling: API errors, fetch failures
+  - Filter Integration: initial filters from props
+
+**Files Created:**
+- `src/components/molecules/ExpenseListFilters.tsx`
+- `src/components/molecules/__tests__/ExpenseListFilters.test.tsx`
+- `src/components/organisms/ExpenseList.tsx`
+- `src/components/organisms/__tests__/ExpenseList.test.tsx`
+
+**Files Updated:**
+- `src/components/molecules/index.ts`
+- `src/components/organisms/index.ts`
+- `src/app/(dashboard)/expenses/page.tsx`
+- `src/app/api/expenses/route.ts`
+- `src/services/expense.service.ts`
+
+**Build Status:**
+- ✅ All 30 tests passing (11 ExpenseListFilters + 19 ExpenseList)
+- ✅ TypeScript compilation successful
+- ✅ Next.js build successful
+- ✅ No linter errors
 

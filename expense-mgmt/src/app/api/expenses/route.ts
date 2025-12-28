@@ -109,8 +109,11 @@ export async function POST(request: Request): Promise<NextResponse<CreateExpense
  * - status: Filter by expense status (draft, submitted, approved, rejected)
  * - workflowType: Filter by workflow type (petty, internet)
  * - submittedBy: Filter by submitter ID
+ * - search: Text search in vendor name and invoice number
+ * - startDate: Filter expenses from this date (YYYY-MM-DD)
+ * - endDate: Filter expenses to this date (YYYY-MM-DD)
  * - page: Page number (default: 1)
- * - limit: Items per page (default: 50, max: 100)
+ * - limit: Items per page (default: 10, max: 100)
  */
 export async function GET(request: Request): Promise<NextResponse<ListExpensesResponse>> {
   try {
@@ -126,14 +129,20 @@ export async function GET(request: Request): Promise<NextResponse<ListExpensesRe
       | null;
     const workflowType = searchParams.get('workflowType') as 'petty' | 'internet' | null;
     const submittedBy = searchParams.get('submittedBy');
+    const search = searchParams.get('search');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '10', 10)));
     const offset = (page - 1) * limit;
 
     const { expenses, total } = await getExpenses(tenant.tenantId, {
       status: status ?? undefined,
       workflowType: workflowType ?? undefined,
       submittedBy: submittedBy ?? undefined,
+      search: search ?? undefined,
+      startDate: startDate ?? undefined,
+      endDate: endDate ?? undefined,
       limit,
       offset,
     });
@@ -158,7 +167,7 @@ export async function GET(request: Request): Promise<NextResponse<ListExpensesRe
         {
           success: false,
           data: [],
-          meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+          meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
           error: {
             code: API_ERROR_CODES.UNAUTHORIZED,
             message: 'Authentication required',
@@ -172,7 +181,7 @@ export async function GET(request: Request): Promise<NextResponse<ListExpensesRe
       {
         success: false,
         data: [],
-        meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+        meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
         error: {
           code: API_ERROR_CODES.INTERNAL_ERROR,
           message,
