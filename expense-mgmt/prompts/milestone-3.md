@@ -24,8 +24,8 @@ Implement petty expense submission workflow.
 | 3.6 | Create expense list view with filtering | Done |
 | 3.7 | Implement expense detail view | Done |
 | 3.8 | Create audit trail logging | Done |
-| 3.9 | Write expense submission tests | Pending |
-| 3.10 | Create Storybook stories for expense components | Done (3.2) |
+| 3.9 | Write expense submission tests | Done |
+| 3.10 | Create Storybook stories for expense components | Done |
 
 ### Workflow Integration Notes
 
@@ -698,4 +698,35 @@ Implement petty expense submission workflow.
 - ✅ All tests passing (15 new tests for audit trail, 28 ExpenseDetail tests)
 - ✅ TypeScript compilation successful
 - ✅ Next.js build successful
+- ✅ No linter errors
+
+### Task 3.9: Write expense submission tests
+
+**API Route Tests Created:**
+- `src/app/api/expenses/route.test.ts` - Tests for POST and GET endpoints
+  - POST /api/expenses: Create expense (success, validation errors, auth errors, workflow errors)
+  - GET /api/expenses: List expenses (success, pagination, filters, auth errors)
+- `src/app/api/expenses/[expenseId]/route.test.ts` - Tests for GET, PUT, DELETE endpoints
+  - GET /api/expenses/:expenseId: Get expense details (success, not found, auth errors)
+  - PUT /api/expenses/:expenseId: Update expense (success, validation errors, not found, status validation, auth errors)
+  - DELETE /api/expenses/:expenseId: Delete expense (success, not found, status validation, auth errors)
+- `src/app/api/expenses/[expenseId]/submit/route.test.ts` - Tests for submit endpoint
+  - POST /api/expenses/:expenseId/submit: Submit expense (success, not found, status validation, ownership validation, workflow errors, auth errors)
+
+**Test Coverage:**
+- 35 tests total (all passing)
+- Comprehensive error handling tests
+- Authentication and authorization tests
+- Validation error tests
+- Business logic error tests (workflow, status, ownership)
+- Pagination and filtering tests
+
+**Files Created:**
+- `src/app/api/expenses/route.test.ts` - Main expenses route tests
+- `src/app/api/expenses/[expenseId]/route.test.ts` - Expense detail route tests
+- `src/app/api/expenses/[expenseId]/submit/route.test.ts` - Submit expense route tests
+
+**Build Status:**
+- ✅ All 35 API route tests passing
+- ✅ TypeScript compilation successful
 - ✅ No linter errors
