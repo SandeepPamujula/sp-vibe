@@ -10,7 +10,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { Input, DateInput, CurrencyInput, Textarea, Button } from '@/components/atoms';
+import { Input, DateInput, CurrencyInput, Textarea, Button, Spinner } from '@/components/atoms';
 import {
   FormRow,
   FormField,
@@ -22,6 +22,30 @@ import type { FileWithPreview } from '@/components/molecules/FileUploadZone';
 import { useFileUpload } from '@/hooks';
 import type { NatureOfExpenseOption } from '@/types/dto/nature-of-expense.dto';
 import { toNatureOfExpenseOptions } from '@/types/dto/nature-of-expense.dto';
+
+// Helper functions for file display
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function getFileIcon(mimeType: string | undefined): string {
+  if (!mimeType) return '📎';
+  if (mimeType === 'application/pdf') return '📄';
+  if (mimeType.startsWith('image/')) return '🖼️';
+  return '📎';
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
 
 // ============================================================================
 // Types
@@ -48,6 +72,8 @@ interface FormErrors {
 }
 
 export interface ExpenseSubmissionFormProps {
+  /** Optional expense ID for editing existing expense */
+  expenseId?: string;
   /** Callback when expense is successfully created */
   onSuccess?: (expenseId: string) => void;
   /** Callback when form is cancelled */
@@ -58,7 +84,11 @@ export interface ExpenseSubmissionFormProps {
 // Component
 // ============================================================================
 
-export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmissionFormProps) {
+export function ExpenseSubmissionForm({
+  expenseId,
+  onSuccess,
+  onCancel,
+}: ExpenseSubmissionFormProps) {
   const router = useRouter();
 
   // Form state
@@ -73,6 +103,7 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isLoadingExpense, setIsLoadingExpense] = useState(!!expenseId);
 
   // GL Codes (Nature of Expense options)
   const [glCodes, setGlCodes] = useState<NatureOfExpenseOption[]>([]);
@@ -80,7 +111,13 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
 
   // File upload state
   const [files, setFiles] = useState<FileWithPreview[]>([]);
-  const [draftExpenseId, setDraftExpenseId] = useState<string | null>(null);
+  const [draftExpenseId, setDraftExpenseId] = useState<string | null>(expenseId || null);
+  const [expenseStatus, setExpenseStatus] = useState<
+    'draft' | 'rejected' | 'submitted' | 'approved' | null
+  >(null);
+  const [existingAttachments, setExistingAttachments] = useState<
+    Array<{ id: string; fileName: string; contentType: string; fileSize: number; uploadedAt: Date }>
+  >([]);
   // Track uploaded file names to prevent duplicate uploads
   const uploadedFileNamesRef = useRef<Set<string>>(new Set());
 
@@ -95,6 +132,52 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
       setErrors((prev) => ({ ...prev, attachments: error }));
     },
   });
+
+  // Load existing expense data if editing
+  useEffect(() => {
+    async function loadExpense() {
+      if (!expenseId) return;
+
+      try {
+        setIsLoadingExpense(true);
+        const response = await fetch(`/api/expenses/${expenseId}`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const expense = result.data;
+          setFormData({
+            expenseDate: expense.expenseDate,
+            invoiceNumber: expense.invoiceNumber || '',
+            vendorName: expense.vendorName,
+            amount: expense.amount,
+            natureOfExpense: expense.glCodeId || '',
+            purpose: expense.purpose || '',
+          });
+          setDraftExpenseId(expenseId);
+          setExpenseStatus(expense.status);
+          // Load existing attachments
+          if (expense.attachments && expense.attachments.length > 0) {
+            setExistingAttachments(expense.attachments);
+          }
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            submit: result.error?.message || 'Failed to load expense',
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading expense:', error);
+        setErrors((prev) => ({
+          ...prev,
+          submit: 'Failed to load expense',
+        }));
+      } finally {
+        setIsLoadingExpense(false);
+      }
+    }
+
+    loadExpense();
+  }, [expenseId]);
 
   // Load GL codes on mount
   useEffect(() => {
@@ -265,6 +348,29 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
     setErrors((prev) => ({ ...prev, attachments: undefined }));
   }, []);
 
+  // Handle deletion of existing attachment
+  const handleDeleteExistingAttachment = useCallback(async (attachmentId: string) => {
+    try {
+      const response = await fetch(`/api/attachments/${attachmentId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error?.message || 'Failed to delete attachment');
+      }
+
+      // Remove from existing attachments list
+      setExistingAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
+    } catch (error) {
+      console.error('Error deleting attachment:', error);
+      setErrors((prev) => ({
+        ...prev,
+        attachments: error instanceof Error ? error.message : 'Failed to delete attachment',
+      }));
+    }
+  }, []);
+
   // Upload files when draft is created/updated
   useEffect(() => {
     if (!draftExpenseId || files.length === 0) {
@@ -318,11 +424,21 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
         });
       }
 
-      // Step 3: Submit expense
-      const submitResponse = await fetch(`/api/expenses/${expenseId}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      // Step 3: Submit or resubmit expense based on status
+      let submitResponse: Response;
+      if (expenseStatus === 'rejected') {
+        // Resubmit rejected expense
+        submitResponse = await fetch(`/api/expenses/${expenseId}/resubmit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        // Submit draft expense
+        submitResponse = await fetch(`/api/expenses/${expenseId}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       const submitResult = await submitResponse.json();
       if (!submitResult.success) {
@@ -348,6 +464,15 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
       router.push('/expenses');
     }
   };
+
+  // Show loading state when loading expense data
+  if (isLoadingExpense) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -453,6 +578,51 @@ export function ExpenseSubmissionForm({ onSuccess, onCancel }: ExpenseSubmission
       >
         <FormRow cols={1}>
           <FormField>
+            {/* Existing Attachments */}
+            {existingAttachments.length > 0 && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Existing Attachments
+                </label>
+                <ul className="space-y-2">
+                  {existingAttachments.map((attachment) => (
+                    <li
+                      key={attachment.id}
+                      className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700"
+                    >
+                      {/* File Icon */}
+                      <span className="w-10 h-10 flex items-center justify-center text-xl">
+                        {getFileIcon(attachment.contentType)}
+                      </span>
+
+                      {/* File Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                          {attachment.fileName}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {formatFileSize(attachment.fileSize)} • Uploaded{' '}
+                          {new Date(attachment.uploadedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteExistingAttachment(attachment.id)}
+                        disabled={isSubmitting || isSavingDraft}
+                        className="p-1 text-zinc-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label={`Delete ${attachment.fileName}`}
+                      >
+                        <CloseIcon className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* File Upload Zone */}
             <FileUploadZone
               files={files}
               onFilesChange={handleFilesChange}

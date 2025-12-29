@@ -90,7 +90,7 @@ export async function GET(
 /**
  * PUT /api/expenses/:expenseId
  *
- * Update an expense (draft status only).
+ * Update an expense (draft or rejected status only).
  */
 export async function PUT(
   request: Request,
@@ -155,7 +155,7 @@ export async function PUT(
       );
     }
 
-    if (message.includes('Only draft')) {
+    if (message.includes('Only draft') || message.includes('Only draft or rejected')) {
       return NextResponse.json(
         {
           success: false,
@@ -232,7 +232,7 @@ export async function DELETE(
       );
     }
 
-    if (message.includes('Only draft')) {
+    if (message.includes('Only draft') || message.includes('Only draft or rejected')) {
       return NextResponse.json(
         {
           success: false,

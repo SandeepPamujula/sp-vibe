@@ -33,6 +33,7 @@ export {
   submitExpense,
   approveExpense,
   rejectExpense,
+  resubmitExpense,
   getExpenseById,
   getExpenses,
   getPendingExpensesForApproval,

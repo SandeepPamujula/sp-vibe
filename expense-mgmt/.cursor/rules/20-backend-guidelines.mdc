@@ -1,0 +1,24 @@
+# Backend Guidelines
+
+Rules for all backend, API, and database-related code.
+
+---
+
+## Database
+- PostgreSQL is the source of truth
+- All write operations must be transactional
+- Always scope queries by tenant_id
+
+---
+
+## APIs
+- Validate inputs at the API boundary
+- Explicitly define allowed state transitions
+- Never expose internal IDs without authorization checks
+
+---
+
+## Infrastructure
+- AWS services must be accessed via abstractions
+- No environment-specific logic in business code
+- Use mocks/stubs for local development

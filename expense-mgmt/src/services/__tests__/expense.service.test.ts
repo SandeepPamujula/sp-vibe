@@ -386,7 +386,7 @@ describe('Expense Service', () => {
 
       await expect(
         updateExpense('expense-123', 'tenant-123', 'user-123', { vendorName: 'New Vendor' })
-      ).rejects.toThrow('Only draft expenses can be updated');
+      ).rejects.toThrow('Only draft or rejected expenses can be updated');
     });
 
     it('should update expense and log history', async () => {
