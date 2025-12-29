@@ -25,5 +25,8 @@ export type { ExpenseListFiltersProps, ExpenseFilterState } from './ExpenseListF
 export { ExpenseAuditTrail } from './ExpenseAuditTrail';
 export type { ExpenseAuditTrailProps } from './ExpenseAuditTrail';
 
+export { ExpenseHistoryTimeline } from './ExpenseHistoryTimeline';
+export type { ExpenseHistoryTimelineProps } from './ExpenseHistoryTimeline';
+
 export { ApprovalModal } from './ApprovalModal';
 export type { ApprovalModalProps } from './ApprovalModal';

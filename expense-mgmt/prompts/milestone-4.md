@@ -19,8 +19,8 @@ Implement approval/rejection workflow for petty expenses.
 | 4.1 | Create approver dashboard (pending petty expenses) | ✅ Completed |
 | 4.2 | Implement approval/rejection API (using expense_approvals) | ✅ Completed |
 | 4.3 | Create approval modal with comments | ✅ Completed |
-| 4.4 | Implement email notifications (SES) | Pending |
-| 4.5 | Create expense history timeline component | Pending |
+| 4.4 | Implement email notifications (SES) | ⏸️ Deferred |
+| 4.5 | Create expense history timeline component | ✅ Completed |
 | 4.6 | Implement resubmission flow for rejected expenses | Pending |
 | 4.7 | Write approval workflow tests | Pending |
 
@@ -304,3 +304,146 @@ Implement approval/rejection workflow for petty expenses.
 - Fixed TypeScript `any` types in test file (replaced with proper `ApprovalResponse` interface)
 - Fixed React Hook rules violation in Storybook stories (created `InteractiveWrapper` component)
 
+
+---
+
+### Task 4.4: Implement email notifications (SES)
+
+**Status:** ⏸️ Deferred
+
+**Note:** This task has been deferred for now. Email notifications using Amazon SES will be implemented in a future milestone or when needed.
+
+**Planned Implementation:**
+- Email notifications on expense approval/rejection
+- Integration with Amazon SES
+- Email templates for different notification types
+- Mock implementation for local development
+
+---
+
+### Task 4.5: Create expense history timeline component
+
+**Implementation Date:** 2024-01-XX
+
+**Files Created:**
+- `src/components/molecules/ExpenseHistoryTimeline.tsx` - Visual timeline component for expense history
+- `src/components/molecules/__tests__/ExpenseHistoryTimeline.test.tsx` - Comprehensive unit tests (19 tests)
+- `src/components/molecules/ExpenseHistoryTimeline.stories.tsx` - Storybook stories (6 stories)
+
+**Files Updated:**
+- `src/components/atoms/Icon.tsx` - Added timeline icons (ClockIcon, XCircleIcon, DocumentPlusIcon, PaperAirplaneIcon, PencilIcon)
+- `src/components/atoms/index.ts` - Exported new timeline icons
+- `src/components/molecules/index.ts` - Exported ExpenseHistoryTimeline component
+- `src/components/organisms/ExpenseDetail.tsx` - Replaced ExpenseAuditTrail with ExpenseHistoryTimeline
+- `.storybook/main.ts` - Fixed ESM compatibility issue (replaced require.resolve with ESM path resolution)
+- `.storybook/preview.ts` - Added fetch mock fallback
+
+**Features Implemented:**
+
+**ExpenseHistoryTimeline Component:**
+- Visual timeline with vertical line and connecting dots
+- Action-specific icons for each history entry:
+  - DocumentPlusIcon for 'created'
+  - PaperAirplaneIcon for 'submitted'
+  - CheckCircleIcon for 'approved'
+  - XCircleIcon for 'rejected'
+  - PencilIcon for 'updated'
+- Color-coded timeline dots based on action type:
+  - Blue for created/submitted
+  - Green for approved
+  - Red for rejected
+  - Gray for updated
+- Card-based layout for each history entry
+- Relative time display ("2 hours ago") with absolute timestamp fallback
+- User information display (name and email)
+- Comments display (when available)
+- Loading and error states
+- Empty state with helpful message and icon
+- Responsive design with dark mode support
+
+**Visual Enhancements:**
+- Timeline line connecting all entries
+- Rounded timeline dots with icons
+- Shadow effects on cards
+- Hover effects on cards
+- Proper spacing and typography
+- Clean, modern UI design
+
+**Integration:**
+- Integrated into ExpenseDetail component
+- Uses existing API endpoint `/api/expenses/:expenseId/history`
+- Replaced ExpenseAuditTrail component (kept for backward compatibility)
+- Section title updated to "Expense History Timeline"
+
+**Test Coverage:**
+
+**Unit Tests (19 tests, all passing):**
+- **Loading State** (1 test):
+  - Loading spinner display
+  
+- **Error State** (3 tests):
+  - Network error handling
+  - API error handling
+  - Generic error handling
+  
+- **Empty State** (1 test):
+  - Empty state message display
+  
+- **History Display** (5 tests):
+  - All history entries displayed
+  - User information display
+  - Comments display
+  - Timestamp formatting
+  - Entries without comments handling
+  
+- **Action Badges and Icons** (2 tests):
+  - Correct badge variants for all actions
+  - Timeline icons rendering
+  
+- **Timeline Structure** (3 tests):
+  - Timeline line rendering
+  - Timeline dots with colors
+  - Relative and absolute time display
+  
+- **API Integration** (4 tests):
+  - Correct endpoint fetching
+  - Refetch on expenseId change
+  - Fetch error handling
+  - Non-array data handling
+
+**Storybook Stories (6 stories):**
+- Default: Full history with multiple entries
+- AllActions: All action types (created, submitted, approved, rejected, updated)
+- SingleEntry: Single history entry
+- EmptyState: No history entries
+- NoComments: Entries without comments
+- ErrorState: Error handling display
+
+**Component Features:**
+- ✅ Visual timeline with icons and color coding
+- ✅ Action-specific icons and colors
+- ✅ Relative time with absolute timestamp fallback
+- ✅ Card-based layout for each entry
+- ✅ Responsive design with dark mode support
+- ✅ Error handling and loading states
+- ✅ Empty state messaging
+- ✅ Clean, modern UI design
+
+**Storybook Fixes:**
+- Fixed ESM module issue in `.storybook/main.ts` (replaced `require.resolve()` with ESM-compatible path resolution)
+- Fixed Storybook import issues (changed from `@storybook/react` to `@storybook/nextjs-vite`)
+- Added fetch mock fallback in preview.ts
+- Note: Global CSS import may need to be added to preview.ts for proper Tailwind styling
+
+**Build Status:**
+- ✅ All 19 unit tests passing
+- ✅ TypeScript compilation successful
+- ✅ No linter errors
+- ✅ Follows project patterns and conventions
+- ✅ Storybook stories created
+- ✅ Component integrated into ExpenseDetail
+
+**Notes:**
+- Removed changes footer section from timeline (as requested)
+- ExpenseAuditTrail component remains available for backward compatibility
+- Timeline provides better visual representation than the previous audit trail component

@@ -42,5 +42,10 @@ export {
   MenuIcon,
   CloseIcon,
   ChevronDownIcon,
+  ClockIcon,
+  XCircleIcon,
+  DocumentPlusIcon,
+  PaperAirplaneIcon,
+  PencilIcon,
 } from './Icon';
 export type { IconProps } from './Icon';

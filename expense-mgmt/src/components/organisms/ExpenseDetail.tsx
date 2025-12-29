@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { Badge, Button, Spinner } from '@/components/atoms';
-import { ApprovalModal, ExpenseAuditTrail } from '@/components/molecules';
+import { ApprovalModal, ExpenseHistoryTimeline } from '@/components/molecules';
 import type { ExpenseWithRelations } from '@/types/entities';
 
 export interface ExpenseDetailProps {
@@ -418,13 +418,13 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
         </div>
       )}
 
-      {/* Audit Trail Section */}
+      {/* Expense History Timeline Section */}
       {expense.historyCount > 0 && (
         <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-            Audit Trail
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-6">
+            Expense History Timeline
           </h2>
-          <ExpenseAuditTrail expenseId={expense.id} />
+          <ExpenseHistoryTimeline expenseId={expense.id} />
         </div>
       )}
 

@@ -1,5 +1,10 @@
 import type { StorybookConfig } from '@storybook/nextjs-vite';
 import { mergeConfig } from 'vite';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const config: StorybookConfig = {
   "stories": [
@@ -22,7 +27,7 @@ const config: StorybookConfig = {
     return mergeConfig(config, {
       resolve: {
         alias: {
-          'next/navigation': require.resolve('./mocks/next-navigation.ts'),
+          'next/navigation': resolve(__dirname, './mocks/next-navigation.ts'),
         },
       },
     });
