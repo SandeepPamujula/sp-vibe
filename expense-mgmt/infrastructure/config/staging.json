@@ -1,0 +1,203 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Staging environment configuration for Expense Management Application",
+  "version": "1.0.0",
+  "environment": "staging",
+  "targetUsage": {
+    "activeUsers": "<10",
+    "costTarget": "$20-30/month",
+    "performance": "Acceptable for testing"
+  },
+  "resourceConstraints": {
+    "lambda": {
+      "memorySize": 128,
+      "timeout": 30,
+      "reservedConcurrentExecutions": null,
+      "provisionedConcurrency": false,
+      "ephemeralStorage": 512,
+      "runtime": "nodejs20.x",
+      "description": "Minimum Lambda configuration for <10 users"
+    },
+    "rds": {
+      "engine": "postgres",
+      "engineVersion": "16",
+      "instanceClass": "db.t3.micro",
+      "allocatedStorage": 20,
+      "storageType": "gp3",
+      "multiAz": false,
+      "backupRetentionDays": 7,
+      "storageAutoscaling": false,
+      "performanceInsights": false,
+      "enhancedMonitoring": false,
+      "publiclyAccessible": false,
+      "description": "Minimal RDS PostgreSQL instance for staging"
+    },
+    "s3": {
+      "versioning": false,
+      "encryption": "SSE-S3",
+      "lifecyclePolicies": [],
+      "transferAcceleration": false,
+      "publicAccess": false,
+      "description": "S3 bucket with minimal configuration for cost savings"
+    },
+    "apiGateway": {
+      "type": "HTTP_API",
+      "caching": false,
+      "throttling": "default",
+      "description": "HTTP API Gateway (cheaper than REST API)"
+    },
+    "cloudWatch": {
+      "logRetentionDays": 7,
+      "customMetrics": "minimal",
+      "alarms": "minimal",
+      "xRay": false,
+      "description": "Minimal CloudWatch configuration for cost savings"
+    },
+    "ses": {
+      "sandboxMode": true,
+      "dedicatedIp": false,
+      "description": "SES in sandbox mode for staging (verified emails only)"
+    },
+    "cloudFront": {
+      "enabled": false,
+      "priceClass": "UseOnlyNorthAmericaAndEurope",
+      "description": "CloudFront disabled by default (can be enabled if needed)"
+    }
+  },
+  "environmentVariables": {
+    "application": {
+      "NODE_ENV": "staging",
+      "NEXT_PUBLIC_APP_URL": "https://staging.expense-mgmt.example.com"
+    },
+    "database": {
+      "DATABASE_URL": {
+        "source": "secrets-manager",
+        "secretName": "expense-mgmt-staging/database",
+        "description": "PostgreSQL connection URL from Secrets Manager"
+      }
+    },
+    "aws": {
+      "AWS_REGION": "us-east-1",
+      "AWS_ACCOUNT_ID": {
+        "source": "cdk-context",
+        "description": "AWS Account ID from CDK context"
+      }
+    },
+    "s3": {
+      "S3_BUCKET": {
+        "source": "cdk-output",
+        "outputKey": "StorageStack.BucketName",
+        "description": "S3 bucket name from StorageStack output"
+      }
+    },
+    "ses": {
+      "SES_FROM_EMAIL": "noreply@staging.expense-mgmt.example.com",
+      "SES_REGION": "us-east-1"
+    },
+    "auth": {
+      "JWT_SECRET": {
+        "source": "secrets-manager",
+        "secretName": "expense-mgmt-staging/jwt-secret",
+        "description": "JWT signing secret from Secrets Manager"
+      }
+    },
+    "rdsProxy": {
+      "RDS_PROXY_ENDPOINT": {
+        "source": "cdk-output",
+        "outputKey": "DatabaseStack.ProxyEndpoint",
+        "optional": true,
+        "description": "RDS Proxy endpoint if RDS Proxy is enabled"
+      }
+    }
+  },
+  "secrets": {
+    "database": {
+      "secretName": "expense-mgmt-staging/database",
+      "description": "RDS database credentials (username, password, host, port, dbname)",
+      "required": true
+    },
+    "jwtSecret": {
+      "secretName": "expense-mgmt-staging/jwt-secret",
+      "description": "JWT signing secret (minimum 32 characters)",
+      "required": true
+    }
+  },
+  "parameterStore": {
+    "appConfig": {
+      "parameterName": "/expense-mgmt/staging/config",
+      "description": "Non-sensitive application configuration",
+      "optional": true
+    }
+  },
+  "networking": {
+    "vpc": {
+      "createNew": true,
+      "description": "Create minimal VPC for staging (or use existing VPC ID)"
+    },
+    "subnets": {
+      "public": {
+        "count": 2,
+        "description": "Public subnets for API Gateway/Load Balancer"
+      },
+      "private": {
+        "count": 2,
+        "description": "Private subnets for Lambda and RDS"
+      }
+    },
+    "natGateway": {
+      "enabled": true,
+      "description": "NAT Gateway required for Lambda to access RDS in private subnet"
+    }
+  },
+  "monitoring": {
+    "alarms": {
+      "lambdaErrors": {
+        "enabled": true,
+        "threshold": 5,
+        "period": 300,
+        "description": "Alert if Lambda error rate > 5% over 5 minutes"
+      },
+      "rdsCpu": {
+        "enabled": true,
+        "threshold": 80,
+        "period": 300,
+        "description": "Alert if RDS CPU > 80% over 5 minutes"
+      },
+      "apiGateway5xx": {
+        "enabled": true,
+        "threshold": 10,
+        "period": 300,
+        "description": "Alert if API Gateway 5xx errors > 10 over 5 minutes"
+      }
+    }
+  },
+  "costOptimization": {
+    "estimatedMonthlyCost": {
+      "rds": "$15",
+      "lambda": "$1-5",
+      "s3": "$1-5",
+      "apiGateway": "$1",
+      "cloudWatch": "$1-3",
+      "ses": "$0",
+      "total": "$20-30"
+    },
+    "notes": [
+      "RDS: db.t3.micro, single AZ, 20 GB storage, 7-day backups",
+      "Lambda: 128 MB memory, pay-per-use, no reserved concurrency",
+      "S3: No versioning, SSE-S3 encryption, manual cleanup",
+      "API Gateway: HTTP API (cheaper than REST), no caching",
+      "CloudWatch: 7-day log retention, minimal alarms",
+      "SES: Sandbox mode (free)"
+    ]
+  },
+  "deployment": {
+    "stackName": "ExpenseAppStaging",
+    "region": "us-east-1",
+    "tags": {
+      "Environment": "staging",
+      "Application": "expense-mgmt",
+      "ManagedBy": "CDK"
+    }
+  }
+}
+
