@@ -159,6 +159,11 @@ export const rejectExpenseSchema = z.object({
     .max(5000, 'Comments must be less than 5000 characters'),
 });
 
+/**
+ * Schema for resubmitting a rejected expense
+ */
+export const resubmitExpenseSchema = expenseIdSchema;
+
 // ============================================================================
 // Bulk Action Schemas
 // ============================================================================
@@ -196,6 +201,7 @@ export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
 export type ApproveExpenseInput = z.infer<typeof approveExpenseSchema>;
 export type RejectExpenseInput = z.infer<typeof rejectExpenseSchema>;
+export type ResubmitExpenseInput = z.infer<typeof resubmitExpenseSchema>;
 export type BulkApproveInput = z.infer<typeof bulkApproveSchema>;
 export type BulkRejectInput = z.infer<typeof bulkRejectSchema>;
 export type ApprovalStatusInput = z.infer<typeof approvalStatusSchema>;

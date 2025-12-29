@@ -124,6 +124,7 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [downloadingAttachment, setDownloadingAttachment] = useState<string | null>(null);
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const [isResubmitting, setIsResubmitting] = useState(false);
 
   const fetchExpense = async () => {
     try {
@@ -175,6 +176,39 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
     }
   };
 
+  const handleResubmit = async () => {
+    if (!expense) return;
+
+    try {
+      setIsResubmitting(true);
+      setError(null);
+
+      const response = await fetch(`/api/expenses/${expenseId}/resubmit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const result: {
+        success: boolean;
+        data?: { expenseId: string };
+        error?: { code: string; message: string };
+      } = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to resubmit expense');
+      }
+
+      // Refresh expense data after successful resubmission
+      await fetchExpense();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to resubmit expense';
+      setError(errorMessage);
+      alert(errorMessage);
+    } finally {
+      setIsResubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -216,9 +250,27 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {(expense.status === 'draft' || expense.status === 'rejected') && (
+            <Link href={`/expenses/${expenseId}/edit`}>
+              <Button variant="primary" size="sm">
+                Edit
+              </Button>
+            </Link>
+          )}
           {expense.status === 'submitted' && (
             <Button variant="primary" size="sm" onClick={() => setIsApprovalModalOpen(true)}>
               Review & Approve
+            </Button>
+          )}
+          {expense.status === 'rejected' && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleResubmit}
+              isLoading={isResubmitting}
+              disabled={isResubmitting}
+            >
+              Resubmit
             </Button>
           )}
           <Badge variant={STATUS_BADGE_VARIANTS[expense.status] || 'default'} size="md">

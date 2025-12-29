@@ -236,7 +236,7 @@ export async function createExpense(params: CreateExpenseParams): Promise<string
 }
 
 /**
- * Update an existing expense (draft only)
+ * Update an existing expense (draft or rejected only)
  *
  * The `natureOfExpense` param is a GL Code ID. This function will:
  * 1. Look up the GL code to validate it exists
@@ -261,8 +261,8 @@ export async function updateExpense(
     throw new Error('Expense not found');
   }
 
-  if (expense.status !== 'draft') {
-    throw new Error('Only draft expenses can be updated');
+  if (expense.status !== 'draft' && expense.status !== 'rejected') {
+    throw new Error('Only draft or rejected expenses can be updated');
   }
 
   // Build update object
@@ -665,6 +665,109 @@ export async function rejectExpense(
     changes: {
       status: { from: 'submitted', to: 'rejected' },
       approvalStatus: { from: 'pending', to: 'rejected' },
+    },
+  });
+}
+
+/**
+ * Resubmit a rejected expense
+ *
+ * This function:
+ * 1. Validates the expense is in rejected status
+ * 2. Verifies the user is the original submitter
+ * 3. Validates required fields are filled (including natureOfExpense)
+ * 4. Changes status from 'rejected' to 'submitted'
+ * 5. Links the expense to the appropriate workflow
+ * 6. Creates a new expense_approval record for the first workflow step
+ * 7. Sets the expense's current_step_id to the pending step
+ * 8. Keeps old approval records for audit trail
+ * 9. Records action in expense_history
+ */
+export async function resubmitExpense(
+  expenseId: string,
+  tenantId: string,
+  userId: string
+): Promise<void> {
+  // Get expense with validation
+  const expenseResult = await db
+    .select()
+    .from(expenses)
+    .where(and(eq(expenses.id, expenseId), eq(expenses.tenantId, tenantId)))
+    .limit(1);
+
+  const expense = expenseResult[0];
+  if (!expense) {
+    throw new Error('Expense not found');
+  }
+
+  if (expense.status !== 'rejected') {
+    throw new Error('Only rejected expenses can be resubmitted');
+  }
+
+  // Verify the user is the original submitter
+  if (expense.submittedBy !== userId) {
+    throw new Error('Only the expense owner can resubmit');
+  }
+
+  // Validate required fields for resubmission
+  if (!expense.glCodeId || !expense.natureOfExpense) {
+    throw new Error('Nature of expense is required for resubmission');
+  }
+
+  if (!expense.amount || parseFloat(expense.amount) <= 0) {
+    throw new Error('Valid amount is required for resubmission');
+  }
+
+  // Get workflow for this expense type
+  const workflow = await getWorkflowByType(tenantId, expense.workflowType);
+  if (!workflow) {
+    throw new Error(`No active workflow found for type: ${expense.workflowType}`);
+  }
+
+  // Get first workflow step
+  const firstStep = await getFirstWorkflowStep(workflow.id);
+  if (!firstStep) {
+    throw new Error('No active workflow steps found');
+  }
+
+  const now = new Date();
+
+  // Create expense approval record for the first step
+  const approvalResult = await db
+    .insert(expenseApprovals)
+    .values({
+      expenseId,
+      workflowStepId: firstStep.id,
+      status: 'pending',
+    })
+    .returning({ id: expenseApprovals.id });
+
+  const approvalId = approvalResult[0]?.id;
+  if (!approvalId) {
+    throw new Error('Failed to create approval record');
+  }
+
+  // Update expense: change status to submitted and set workflow fields
+  await db
+    .update(expenses)
+    .set({
+      status: 'submitted',
+      workflowId: workflow.id,
+      currentStepId: firstStep.id,
+      approvedBy: null, // Clear approvedBy if it was set
+      updatedAt: now,
+    })
+    .where(eq(expenses.id, expenseId));
+
+  // Log history entry for resubmission
+  await db.insert(expenseHistory).values({
+    expenseId,
+    userId,
+    action: 'submitted',
+    comments: 'Expense resubmitted for approval',
+    changes: {
+      status: { from: 'rejected', to: 'submitted' },
+      resubmitted: true,
     },
   });
 }

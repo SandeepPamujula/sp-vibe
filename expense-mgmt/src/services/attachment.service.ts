@@ -279,9 +279,9 @@ export async function deleteAttachment(attachmentId: string, tenantId: string): 
     return false;
   }
 
-  // Only allow deletion for draft expenses
-  if (expenseStatus !== 'draft') {
-    throw new Error('Cannot delete attachments from submitted expenses');
+  // Only allow deletion for draft or rejected expenses
+  if (expenseStatus !== 'draft' && expenseStatus !== 'rejected') {
+    throw new Error('Cannot delete attachments from submitted or approved expenses');
   }
 
   // Delete from storage

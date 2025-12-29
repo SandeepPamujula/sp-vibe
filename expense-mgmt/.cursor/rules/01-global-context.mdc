@@ -1,0 +1,25 @@
+# Global Context (Rules Only)
+
+This file defines non-negotiable rules that apply to all code generated in this repository.
+
+---
+
+## Architecture
+- Next.js App Router
+- TypeScript (strict mode)
+- Server Components by default
+- Client Components only when browser APIs or interactivity are required
+
+---
+
+## Multi-Tenancy (CRITICAL)
+- Every database read/write MUST filter by tenant_id
+- Tenant context must never be inferred implicitly
+- Tenant isolation overrides all other concerns
+
+---
+
+## Security
+- Validate all inputs at system boundaries
+- Never trust client-provided identifiers
+- Authorization checks are mandatory for all mutations

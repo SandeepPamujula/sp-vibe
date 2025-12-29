@@ -109,7 +109,7 @@ export async function GET(
  * DELETE /api/attachments/:attachmentId
  *
  * Delete an attachment from storage and database.
- * Only allowed for draft expenses.
+ * Only allowed for draft or rejected expenses.
  */
 export async function DELETE(
   _request: Request,

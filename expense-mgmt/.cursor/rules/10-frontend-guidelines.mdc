@@ -1,0 +1,24 @@
+# Frontend Guidelines
+
+Rules for all frontend and UI-related code.
+
+---
+
+## Components
+- Prefer Server Components
+- Use Client Components only for forms, events, and browser APIs
+- Components must be small and composable(use Atomic Design)
+
+---
+
+## Forms & Validation
+- All forms must use react-hook-form
+- Schema-based validation is mandatory
+- Display loading, error, and empty states
+
+---
+
+## Data Fetching
+- No direct API calls inside UI components
+- Use abstractions/hooks for data access
+- Handle error and retry states explicitly
