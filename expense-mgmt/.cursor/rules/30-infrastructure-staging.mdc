@@ -1,0 +1,454 @@
+---
+description: AWS Infrastructure Rules - Staging Environment (Minimal Resource Usage)
+globs: ["infrastructure/**/*.ts", "**/*infrastructure*.ts", "**/*deploy*.ts"]
+alwaysApply: false
+---
+
+# Infrastructure Rules - Staging Environment
+
+> **Purpose**: Strict constraints for staging environment with <10 active users. All infrastructure must minimize resource usage and costs.
+
+---
+
+## Deployment Model: Serverless with Lambda + API Gateway
+
+**Architecture**: Next.js standalone → Lambda → API Gateway → RDS PostgreSQL + S3 + SES
+
+---
+
+## Resource Constraints (CRITICAL)
+
+### Target Usage
+- **Active Users**: <10 concurrent users
+- **Cost Target**: Minimize AWS costs for staging/testing
+- **Performance**: Acceptable for testing, not production-grade
+
+### Resource Limits
+
+**Lambda Functions:**
+- Memory: **128 MB** (minimum) - increase only if cold starts are problematic
+- Timeout: **30 seconds** (maximum)
+- Reserved concurrency: **None** (use default)
+- Provisioned concurrency: **Disabled**
+- Ephemeral storage: **512 MB** (default minimum)
+
+**RDS PostgreSQL:**
+- Instance class: **db.t3.micro** or **db.t4g.micro** (smallest available)
+- Storage: **20 GB** (minimum, gp3)
+- Multi-AZ: **Disabled** (single AZ only)
+- Backup retention: **7 days** (minimum)
+- Automated backups: **Enabled** (required for point-in-time recovery)
+- Performance Insights: **Disabled**
+- Enhanced monitoring: **Disabled**
+- Storage autoscaling: **Disabled** (manual scaling only)
+
+**API Gateway:**
+- Type: **HTTP API** (cheaper than REST API)
+- Throttling: **Default limits** (no custom throttling)
+- Caching: **Disabled**
+- Request validation: **Enabled** (via Lambda)
+
+**S3 Bucket:**
+- Storage class: **Standard** (no lifecycle policies for staging)
+- Versioning: **Disabled** (to save costs)
+- Lifecycle policies: **None** (manual cleanup)
+- Transfer acceleration: **Disabled**
+- Encryption: **SSE-S3** (not KMS to avoid costs)
+
+**CloudFront:**
+- Distribution: **Minimal** (if needed for static assets)
+- Caching: **Basic** (no custom cache policies)
+- Price class: **Use only North America and Europe** (cheapest)
+
+**SES:**
+- Sandbox mode: **Enabled** (for staging - only verified emails)
+- Dedicated IP: **Disabled**
+- Reputation dashboard: **Not required**
+
+**CloudWatch:**
+- Log retention: **7 days** (minimum)
+- Custom metrics: **Minimal** (only critical)
+- Alarms: **Minimal** (only critical failures)
+- X-Ray: **Disabled**
+
+---
+
+## Infrastructure as Code (AWS CDK)
+
+### Stack Structure
+
+```
+infrastructure/
+├── bin/
+│   └── expense-app.ts          # CDK app entry point
+├── lib/
+│   ├── stacks/
+│   │   ├── staging-stack.ts   # Main staging stack
+│   │   ├── database-stack.ts  # RDS PostgreSQL (minimal)
+│   │   ├── storage-stack.ts    # S3 bucket (minimal)
+│   │   ├── email-stack.ts      # SES configuration
+│   │   └── compute-stack.ts    # Lambda + API Gateway
+│   └── constructs/
+│       ├── nextjs-lambda.ts   # Next.js Lambda deployment
+│       ├── api-gateway.ts      # API Gateway setup
+│       └── rds-instance.ts     # RDS instance (minimal)
+└── config/
+    └── staging.json            # Staging-specific config
+```
+
+### CDK Configuration Rules
+
+**Staging Stack (`staging-stack.ts`):**
+```typescript
+// CRITICAL: All resources must use minimal configurations
+const stagingConfig = {
+  rds: {
+    instanceClass: 'db.t3.micro',  // Smallest available
+    allocatedStorage: 20,          // Minimum GB
+    multiAz: false,                // Single AZ only
+    backupRetentionDays: 7,        // Minimum
+  },
+  lambda: {
+    memorySize: 128,               // Minimum MB
+    timeout: 30,                   // Seconds
+    reservedConcurrentExecutions: undefined, // No reservation
+  },
+  s3: {
+    versioning: false,             // Disabled
+    lifecycleRules: [],            // None
+  },
+};
+```
+
+**Environment Variables:**
+- Use AWS Systems Manager Parameter Store for secrets
+- Use environment variables for non-sensitive config
+- Never hardcode credentials or secrets
+
+---
+
+## Next.js Lambda Deployment
+
+### Build Configuration
+
+**`next.config.ts` Requirements:**
+```typescript
+const nextConfig = {
+  output: 'standalone',  // REQUIRED for Lambda
+  // ... other config
+};
+```
+
+**Lambda Handler:**
+- Use `@sls-next/lambda-at-edge` or similar for Next.js Lambda deployment
+- Package only `.next/standalone` output
+- Use Lambda layers for shared dependencies (if needed)
+
+**Lambda Function Configuration:**
+- Runtime: **Node.js 20.x** (LTS)
+- Handler: Next.js server handler
+- Environment variables: From Parameter Store/Secrets Manager
+- VPC: **Required** (for RDS access in private subnet)
+
+---
+
+## Database (RDS PostgreSQL)
+
+### Instance Configuration
+
+**Instance Specs:**
+- Engine: PostgreSQL 16
+- Instance class: **db.t3.micro** (1 vCPU, 1 GB RAM)
+- Storage: **20 GB gp3** (minimum)
+- Storage type: **gp3** (cheaper than io1/io2)
+- Storage autoscaling: **Disabled**
+
+**Network Configuration:**
+- VPC: Use existing or create minimal VPC
+- Subnet group: **Private subnets only** (for security)
+- Public access: **Disabled**
+- Security group: Restrict to Lambda security group only
+
+**Backup & Maintenance:**
+- Backup window: Off-peak hours
+- Maintenance window: Off-peak hours
+- Automated backups: **Enabled** (7-day retention)
+- Snapshot: Manual only (no automated snapshots)
+
+**Connection Pooling:**
+- Use **RDS Proxy** (optional but recommended for Lambda)
+- RDS Proxy: **db.t3.micro** instance (smallest)
+- Connection limits: **Minimal** (based on <10 users)
+
+---
+
+## File Storage (S3)
+
+### Bucket Configuration
+
+**Bucket Settings:**
+- Region: Same as Lambda/RDS
+- Versioning: **Disabled**
+- Encryption: **SSE-S3** (not KMS)
+- Public access: **Block all**
+- CORS: Configured for web uploads only
+
+**Lifecycle Policies:**
+- **None** (manual cleanup for staging)
+- No automatic transitions to cheaper storage
+
+**Bucket Policy:**
+- Restrict access to Lambda execution role only
+- Presigned URLs for client uploads (via Lambda)
+
+---
+
+## Email (SES)
+
+### Configuration
+
+**SES Settings:**
+- Region: Same as other services
+- Sandbox mode: **Enabled** (for staging)
+- Verified emails: Only test email addresses
+- Dedicated IP: **Disabled**
+- Reputation: Not required for staging
+
+**Email Templates:**
+- Store in SES or as code
+- Minimal templates (approval notifications only)
+
+---
+
+## API Gateway
+
+### HTTP API Configuration
+
+**API Settings:**
+- Type: **HTTP API** (cheaper than REST)
+- CORS: Configured for frontend domain
+- Throttling: Default limits
+- Request validation: Via Lambda (not API Gateway)
+
+**Routes:**
+- All routes proxy to Lambda function
+- No custom authorizers (use Lambda middleware)
+- No caching
+
+---
+
+## CloudFront (Optional)
+
+### Distribution Configuration
+
+**Settings:**
+- Origin: S3 bucket or Lambda@Edge
+- Price class: **Use only North America and Europe**
+- Caching: Basic (no custom policies)
+- Compression: Enabled
+- SSL: Default CloudFront certificate
+
+**Use Cases:**
+- Only if serving static assets
+- Can be skipped if Lambda serves everything
+
+---
+
+## Security
+
+### IAM Roles
+
+**Lambda Execution Role:**
+- Least privilege principle
+- Permissions:
+  - RDS: Connect to specific database
+  - S3: Read/write to specific bucket
+  - SES: Send emails
+  - Secrets Manager: Read secrets
+  - Parameter Store: Read parameters
+
+**RDS Security:**
+- Security group: Allow only Lambda security group
+- No public access
+- SSL/TLS required for connections
+
+**S3 Security:**
+- Bucket policy: Restrict to Lambda role
+- No public access
+- Presigned URLs for client uploads (time-limited)
+
+---
+
+## Monitoring & Logging
+
+### CloudWatch Configuration
+
+**Log Groups:**
+- Retention: **7 days** (minimum)
+- Log groups:
+  - `/aws/lambda/expense-mgmt-staging-*`
+  - `/aws/apigateway/expense-mgmt-staging`
+
+**Metrics:**
+- Lambda: Duration, errors, throttles
+- RDS: CPU, connections, storage
+- API Gateway: 4xx, 5xx errors
+- S3: Request metrics (optional)
+
+**Alarms:**
+- Lambda errors > 5% (5-minute period)
+- RDS CPU > 80% (5-minute period)
+- API Gateway 5xx errors > 10 (5-minute period)
+
+**X-Ray:**
+- **Disabled** (to save costs)
+
+---
+
+## Cost Optimization
+
+### Cost-Saving Measures
+
+1. **RDS:**
+   - Use smallest instance (db.t3.micro)
+   - Single AZ (no Multi-AZ)
+   - Minimal storage (20 GB)
+   - 7-day backup retention
+
+2. **Lambda:**
+   - Minimum memory (128 MB)
+   - No reserved/provisioned concurrency
+   - Optimize cold starts (if needed)
+
+3. **S3:**
+   - No versioning
+   - No lifecycle policies
+   - Manual cleanup
+
+4. **CloudWatch:**
+   - 7-day log retention
+   - Minimal alarms
+   - No X-Ray
+
+5. **API Gateway:**
+   - HTTP API (not REST)
+   - No caching
+   - Default throttling
+
+6. **SES:**
+   - Sandbox mode
+   - No dedicated IP
+
+### Estimated Monthly Costs (Staging)
+
+- RDS db.t3.micro: ~$15/month
+- Lambda: ~$1-5/month (pay-per-use)
+- S3: ~$1-5/month (minimal storage)
+- API Gateway: ~$1/month (HTTP API)
+- CloudWatch: ~$1-3/month (logs)
+- SES: Free (sandbox mode)
+- **Total: ~$20-30/month** (approximate)
+
+---
+
+## Environment Variables
+
+### Required Variables
+
+```env
+# Application
+NODE_ENV=staging
+NEXT_PUBLIC_APP_URL=https://staging.example.com
+
+# Database (from Secrets Manager)
+DATABASE_URL=postgresql://user:pass@rds-endpoint:5432/expense_mgmt
+
+# AWS
+AWS_REGION=us-east-1
+AWS_ACCOUNT_ID=123456789012
+
+# S3
+AWS_S3_BUCKET=expense-mgmt-staging-attachments
+
+# SES
+AWS_SES_FROM_EMAIL=noreply@staging.example.com
+
+# JWT
+JWT_SECRET=<from Secrets Manager>
+
+# RDS Proxy (if used)
+RDS_PROXY_ENDPOINT=proxy-endpoint:5432
+```
+
+### Secrets Management
+
+- **AWS Secrets Manager**: Database credentials, JWT secret
+- **Parameter Store**: Non-sensitive configuration
+- **Never commit secrets to code or CDK**
+
+---
+
+## Deployment Process
+
+### Pre-Deployment Checklist
+
+1. ✅ Verify RDS instance class is db.t3.micro
+2. ✅ Verify Lambda memory is 128 MB
+3. ✅ Verify S3 versioning is disabled
+4. ✅ Verify CloudWatch log retention is 7 days
+5. ✅ Verify Multi-AZ is disabled for RDS
+6. ✅ Verify SES is in sandbox mode
+7. ✅ Verify all costs are minimized
+
+### Deployment Steps
+
+1. **Build Next.js:**
+   ```bash
+   pnpm build
+   ```
+
+2. **Deploy Infrastructure:**
+   ```bash
+   cd infrastructure
+   cdk deploy StagingStack --require-approval never
+   ```
+
+3. **Verify Deployment:**
+   - Check Lambda function is deployed
+   - Check RDS instance is running
+   - Check API Gateway endpoint is accessible
+   - Run health check endpoint
+
+### Post-Deployment
+
+- Verify all resources are created with minimal config
+- Test critical endpoints
+- Monitor CloudWatch for errors
+- Verify costs are within expected range
+
+---
+
+## Common Pitfalls to Avoid
+
+1. **❌ Using larger RDS instance** - Always use db.t3.micro for staging
+2. **❌ Enabling Multi-AZ** - Single AZ is sufficient for staging
+3. **❌ Enabling S3 versioning** - Unnecessary cost for staging
+4. **❌ Using REST API Gateway** - HTTP API is cheaper
+5. **❌ Enabling X-Ray** - Adds unnecessary cost
+6. **❌ Long CloudWatch retention** - 7 days is sufficient
+7. **❌ Reserved Lambda concurrency** - Not needed for <10 users
+8. **❌ Over-provisioning storage** - Use minimum required
+
+---
+
+## Reference Files
+
+**Key Files to Reference:**
+- `docs/architecture.md` - Complete architecture documentation
+- `infrastructure/lib/stacks/staging-stack.ts` - Main staging stack
+- `infrastructure/lib/constructs/nextjs-lambda.ts` - Lambda deployment
+- `infrastructure/config/staging.json` - Staging configuration
+
+---
+
+*Last Updated: Infrastructure rules for staging environment with minimal resource usage*

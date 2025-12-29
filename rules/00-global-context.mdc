@@ -701,6 +701,7 @@ LOCAL_STORAGE_PATH=./public/uploads
 - **Testing**: Always ask user if they want Jest/Storybook tests after completing a task
 - **Multi-tenancy**: This is the #1 critical rule - never forget tenant_id filtering
 - **Workflow**: Currently single-level approval, but schema supports multi-level
+- **Infrastructure**: See `30-infrastructure-staging.mdc` for AWS deployment rules and staging environment constraints
 
 ---
 
