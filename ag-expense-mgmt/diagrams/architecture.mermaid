@@ -1,0 +1,10 @@
+graph TD
+    User["User (Browser)"] --> CF[CloudFront]
+    CF --> S3Web["S3 - Static Assets"]
+    CF --> LambdaEdge["Lambda@Edge / Lambda (Next.js SSR/API)"]
+    
+    subgraph "AWS Services"
+        LambdaEdge --> S3Docs["S3 - Invoices"]
+        LambdaEdge --> SES["Amazon SES"]
+        LambdaEdge --> DB[("MongoDB Atlas")]
+    end

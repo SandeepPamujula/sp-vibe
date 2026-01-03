@@ -1,0 +1,89 @@
+erDiagram
+    TENANT ||--o{ USER : "has"
+    TENANT ||--o{ EXPENSE : "owns"
+    TENANT ||--o{ EXPENSE_TYPE : "defines"
+    TENANT ||--o{ GL_CODE : "configures"
+    TENANT ||--o{ WORKFLOW : "configures"
+    TENANT {
+        string id PK
+        string name
+        string createdAt
+    }
+
+    USER ||--o{ EXPENSE : "submits"
+    USER ||--o{ AUDIT_LOG : "triggers"
+    USER {
+        string id PK
+        string tenantId FK
+        string email
+        string name
+        string role "ADMIN | APPROVER"
+        string authProviderId "AzureEntraID"
+    }
+
+    EXPENSE_TYPE ||--|| GL_CODE : "maps to"
+    EXPENSE_TYPE ||--o| WORKFLOW : "uses"
+    EXPENSE_TYPE {
+        string id PK
+        string tenantId FK
+        string name "e.g., Travel, Meals"
+        string description
+        string glCodeId FK
+        string workflowId FK "Optional specific workflow"
+    }
+
+    GL_CODE {
+        string id PK
+        string tenantId FK
+        string code "e.g., 6001, 5002"
+        string description
+    }
+
+    WORKFLOW ||--o{ WORKFLOW_STEP : "has"
+    WORKFLOW {
+        string id PK
+        string tenantId FK
+        string name "e.g., Default Approval"
+        boolean isDefault
+    }
+
+    WORKFLOW_STEP {
+        string id PK
+        string workflowId FK
+        integer stepOrder
+        string approverRole "e.g., MANAGER, FINANCE"
+        float thresholdAmount "Skip if amount < threshold"
+        boolean isFinalStep
+    }
+
+    EXPENSE ||--o{ AUDIT_LOG : "has history"
+    EXPENSE }|--|| EXPENSE_TYPE : "categorized by"
+    EXPENSE }|--|| WORKFLOW : "processes via"
+    EXPENSE {
+        string id PK
+        string tenantId FK
+        string submitterUserId FK
+        string expenseTypeId FK
+        string workflowId FK
+        integer currentStepOrder
+        date expenseDate
+        string vendorName
+        float amount
+        string currency
+        string description
+        string invoiceUrl
+        string status "SUBMITTED | APPROVED | REJECTED"
+        string rejectionReason
+        date createdAt
+        date updatedAt
+    }
+
+    AUDIT_LOG {
+        string id PK
+        string expenseId FK
+        string actorUserId FK
+        string action "SUBMIT | APPROVE | REJECT"
+        string previousStatus
+        string newStatus
+        date timestamp
+    }
