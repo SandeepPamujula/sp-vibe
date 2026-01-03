@@ -24,7 +24,7 @@ flowchart TB
     end
     
     subgraph auth [Authentication]
-        MockSSO[Mock Azure Entra SSO]
+        SSO[Azure Entra SSO]
         Session[Session Management]
     end
     
@@ -51,8 +51,8 @@ flowchart TB
         SES[Amazon SES]
     end
     
-    WebApp --> MockSSO
-    MockSSO --> Session
+    WebApp --> SSO
+    SSO --> Session
     WebApp --> Routes
     Routes --> Middleware
     Middleware --> Controllers

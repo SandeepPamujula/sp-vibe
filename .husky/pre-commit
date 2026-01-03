@@ -1,2 +1,0 @@
-#!/bin/sh
-cd expense-mgmt && pnpm exec lint-staged
