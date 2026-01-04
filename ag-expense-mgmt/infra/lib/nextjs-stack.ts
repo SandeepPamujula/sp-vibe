@@ -21,7 +21,7 @@ export class NextJsStack extends cdk.Stack {
         // Deploy Next.js application
         this.nextjs = new Nextjs(this, 'ExpenseManagementApp', {
             // Path to Next.js app (will be created in milestone 1.2)
-            nextjsPath: '../app',
+            nextjsPath: '../web',
 
             // Environment variables for the Next.js app
             environment: {

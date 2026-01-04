@@ -7,21 +7,12 @@
 
 ## Tasks
 
-### Infrastructure (CDK)
-- [x] **1.1**: Initialize CDK project in `infra/`.
-- [x] **1.1.1**: Define `NextJsStack` (Lambda/S3/CF for Next.js).
-- [x] **1.1.2**: Define `StorageStack` (S3 for documents).
-- [ ] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
-- [ ] **1.1.4**: *Test*: Verify CDK synthesis and stack structure (`cdk synth`).
-- [ ] **1.1.5**: Setup CI/CD Pipeline (GitHub Actions).
-    - [ ] Create `.github/workflows/ci.yml` (Build, Test, Lint).
-
 ### Application Core (Next.js)
-- [ ] **1.2**: Initialize Next.js project.
-    - [ ] Setup TypeScript, TailwindCSS, ESLint, Prettier.
-    - [ ] Configure Atomic Design structure (`components/atoms`, etc).
-    - [ ] Implement `APIResponse` wrapper and Global Error Handler.
-    - [ ] *Test*: Verify build (`npm run build`).
+- [x] **1.2**: Initialize Next.js project.
+    - [x] Setup TypeScript, TailwindCSS, ESLint, Prettier.
+    - [x] Configure Atomic Design structure (`components/atoms`, etc).
+    - [x] Implement `APIResponse` wrapper and Global Error Handler.
+    - [x] *Test*: Verify build (`npm run build`).
 - [ ] **1.3**: Configure Libraries.
     - [ ] Setup Zod for validation.
     - [ ] Setup Jest & React Testing Library.
@@ -50,6 +41,15 @@
     - [ ] Create seed script for Tenants/Users.
     - [ ] *Test*: Verify seed script populates correct data in DB.
 
+### Infrastructure (CDK)
+- [x] **1.1**: Initialize CDK project in `infra/`.
+- [x] **1.1.1**: Define `NextJsStack` (Lambda/S3/CF for Next.js).
+- [x] **1.1.2**: Define `StorageStack` (S3 for documents).
+- [ ] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
+- [ ] **1.1.4**: *Test*: Verify CDK synthesis and stack structure (`cdk synth`).
+- [ ] **1.1.5**: Setup CI/CD Pipeline (GitHub Actions).
+    - [ ] Create `.github/workflows/ci.yml` (Build, Test, Lint).
+
 ## Deliverables
 - Deployed Next.js App URL.
 - Local Storybook URL.
@@ -64,3 +64,5 @@
 - **User Prompt**: "implement task 1.1" -> Initialized CDK project, verified synthesis, and marked Task 1.1 as complete.
 - [x] **User Prompt**: "Option A is fine. however, i like to know the tradeoffs" -> Documented decision for Next.js Monolith in `docs/design/architecture-decision-001-deployment-strategy.md` and explained trade-offs.
 - **User Prompt**: "implement task 1.1.1 and 1.1.2" -> Defined `NextJsStack` and `StorageStack`, and created placeholder `app` directory to enable CDK synthesis.
+- **User Prompt**: "move 1.1 and its subtasks to the end" -> Rearranged tasks to prioritize Application Core and Auth/DB implementation.
+- **User Prompt**: "implement 1.2" -> Initialized Next.js project with TypeScript, TailwindCSS, ESLint, and Prettier. Configured Atomic Design structure (atoms/molecules/organisms/templates). Implemented APIResponse wrapper and Global Error Handler. Verified build succeeds.

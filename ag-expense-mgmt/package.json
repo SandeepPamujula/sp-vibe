@@ -1,0 +1,17 @@
+{
+    "name": "ag-expense-mgmt",
+    "version": "0.1.0",
+    "private": true,
+    "workspaces": [
+        "web",
+        "infra"
+    ],
+    "scripts": {
+        "synth": "npm run synth --workspace=infra",
+        "deploy": "npm run deploy --workspace=infra",
+        "deploy:prod": "npm run deploy:prod --workspace=infra",
+        "destroy": "npm run destroy --workspace=infra",
+        "build": "npm run build --workspaces",
+        "test": "npm run test --workspaces"
+    }
+}
