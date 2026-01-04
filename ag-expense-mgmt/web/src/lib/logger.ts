@@ -1,45 +1,70 @@
-type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+import pino, { Logger as PinoLogger } from 'pino';
 
-interface LogContext {
+const isDev = process.env.NODE_ENV === 'development';
+
+const baseLogger = pino({
+    level: process.env.LOG_LEVEL || (isDev ? 'debug' : 'info'),
+    formatters: {
+        level: (label) => {
+            return { level: label.toUpperCase() };
+        },
+    },
+    timestamp: pino.stdTimeFunctions.isoTime,
+    browser: {
+        asObject: true,
+    },
+    transport: isDev
+        ? {
+            target: 'pino-pretty',
+            options: {
+                colorize: true,
+                ignore: 'pid,hostname',
+            },
+        }
+        : undefined,
+});
+
+export interface LogContext {
     requestId?: string;
     tenantId?: string;
     [key: string]: any;
 }
 
-class Logger {
-    private context: LogContext = {};
+/**
+ * Structured Logger using Pino
+ * Supports JSON format in production and pretty print in development
+ * Automatically includes RequestId and TenantId if provided in context
+ */
+class AppLogger {
+    private logger: PinoLogger;
 
-    setContext(context: LogContext) {
-        this.context = { ...this.context, ...context };
-    }
-
-    private log(level: LogLevel, message: string, data?: any) {
-        const logEntry = {
-            timestamp: new Date().toISOString(),
-            level,
-            message,
-            ...this.context,
-            ...(data && typeof data === 'object' ? data : { data }),
-        };
-
-        console[level](JSON.stringify(logEntry));
+    constructor(logger: PinoLogger) {
+        this.logger = logger;
     }
 
     info(message: string, data?: any) {
-        this.log('info', message, data);
+        this.logger.info(data || {}, message);
     }
 
     warn(message: string, data?: any) {
-        this.log('warn', message, data);
+        this.logger.warn(data || {}, message);
     }
 
     error(message: string, data?: any) {
-        this.log('error', message, data);
+        this.logger.error(data || {}, message);
     }
 
     debug(message: string, data?: any) {
-        this.log('debug', message, data);
+        this.logger.debug(data || {}, message);
+    }
+
+    /**
+     * Creates a child logger with additional context (e.g., requestId, tenantId)
+     */
+    withContext(context: LogContext): AppLogger {
+        return new AppLogger(this.logger.child(context));
     }
 }
 
-export const logger = new Logger();
+export const logger = new AppLogger(baseLogger);
+export default logger;

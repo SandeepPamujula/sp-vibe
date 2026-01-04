@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandler } from '@/lib/error-handler';
 import { successResponse } from '@/lib/api-response';
 import { NotFoundError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 /**
  * Sample API route demonstrating error handling
  * GET /api/health
  */
 async function handler(request: NextRequest) {
+    logger.info('Health check requested');
     // Example: throw an error conditionally
     const { searchParams } = new URL(request.url);
     const shouldFail = searchParams.get('fail');

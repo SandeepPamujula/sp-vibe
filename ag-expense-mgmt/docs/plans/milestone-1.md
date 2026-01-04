@@ -21,9 +21,9 @@
     - [x] Configure `storybook-addon-interactions` for play functions.
     - [x] Configure `storybook-addon-a11y` for Accessibility testing (NFR).
     - [ ] *Test*: Create a sample Story with interaction test (e.g., clicking a button).
-- [ ] **1.3.1**: Observability Setup.
-    - [ ] Implement Structured Logger (JSON format with RequestId/TenantId) (NFR).
-    - [ ] *Test*: Verify logs appear in console/output.
+- [x] **1.3.1**: Observability Setup.
+    - [x] Implement Structured Logger (JSON format with RequestId/TenantId) (NFR).
+    - [x] *Test*: Verify logs appear in console/output.
 - [ ] **1.3.2**: Security Headers.
     - [ ] Configure strict CSP and Security Headers in `next.config.js` (NFR).
 
@@ -75,3 +75,4 @@
 - **User Prompt**: "unable to npm run deploy:dev Error: ENOENT..." -> Fixed OpenNext broken symlinks issue. Combined CDK asset exclusions with a post-build cleanup script. Documented RCA in `docs/troubleshooting/rca-001-opennext-symlink-enoent.md`.
 - **User Prompt**: "Health api details are not shown using cloudfront url..." -> Fixed production health check by dynamically determining the base URL using request headers (`host` and `x-forwarded-proto`).
 - **User Prompt**: "update prompt history" -> Created `docs/history/milestone-1.md` and updated `initial-prompt.md` with the latest progress. Marked Task 1.3 library setup as complete.
+- **User Prompt**: "implement task 1.3.1" -> Implemented structured logger using Pino with JSON format and context support (RequestId/TenantId). Integrated logger into global error handler and health API. Verified with unit and output tests.

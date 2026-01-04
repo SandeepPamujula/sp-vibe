@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AppError } from './errors';
 import { errorResponse } from './api-response';
+import { logger } from './logger';
 
 /**
  * Global Error Handler for API Routes
  * Catches and formats errors consistently
  */
 export function handleError(error: unknown, request?: NextRequest): NextResponse {
-    console.error('Error occurred:', error);
+    const requestId = request?.headers.get('x-request-id') || undefined;
+    const tenantId = request?.headers.get('x-tenant-id') || undefined;
+
+    const reqLogger = logger.withContext({ requestId, tenantId });
+
+    if (error instanceof Error) {
+        reqLogger.error(error.message, {
+            stack: error.stack,
+            errorName: error.name,
+        });
+    } else {
+        reqLogger.error('An unknown error occurred', { error });
+    }
 
     // Handle known AppError instances
     if (error instanceof AppError) {
