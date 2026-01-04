@@ -66,3 +66,7 @@ No Code in this step. is there any other design documents can be created?
 - Think of NFR
 -> Created `docs/nfr.md` covering Performance, Security, Reliability, Scalability, Observability, and Usability.
 
+- read @[ag-expense-mgmt/docs/nfr.md] and see any milestone tasks to be updated
+-> Updated `milestone-1.md` with Observability (Logger), Accessibility (Storybook A11y), and Security Headers.
+-> Updated `milestone-2.md` with Audit Log Service implementation.
+

@@ -22,6 +22,8 @@
 - [ ] **2.3**: Create Data Access Layer (Services).
     - [ ] `InventoryService` (for GL/ExpenseTypes).
     - [ ] `WorkflowService`.
+    - [ ] **2.3.1**: `AuditLogService` (NFR: Security).
+        - [ ] Implement `logAction(tenantId, userId, action, details)`.
     - [ ] *Test*: Unit tests for Service methods.
 - [ ] **2.4**: Create API Endpoints / Server Actions.
     - [ ] `getExpenseTypes(tenantId)`

@@ -28,7 +28,13 @@
     - [ ] *Test*: Create a sample unit test to verify Jest setup.
     - [ ] Setup Storybook.
     - [ ] Configure `storybook-addon-interactions` for play functions.
+    - [ ] Configure `storybook-addon-a11y` for Accessibility testing (NFR).
     - [ ] *Test*: Create a sample Story with interaction test (e.g., clicking a button).
+- [ ] **1.3.1**: Observability Setup.
+    - [ ] Implement Structured Logger (JSON format with RequestId/TenantId) (NFR).
+    - [ ] *Test*: Verify logs appear in console/output.
+- [ ] **1.3.2**: Security Headers.
+    - [ ] Configure strict CSP and Security Headers in `next.config.js` (NFR).
 
 ### Authentication & Database
 - [ ] **1.4**: Implement Mock Authentication.
