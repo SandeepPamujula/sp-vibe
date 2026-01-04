@@ -45,23 +45,24 @@ use atomic design to create components.
 
 I like to implement the features step by step using milestone tasks. we need to add tests for each task. add prompt history in each milestone file once the task is completed.
 ===============================
-4th Jan: review all the milestones and suggest for any changes
+4th Jan: 
 
 Project folder: ag-expense-mgmt/
 No Code in this step. is there any other design documents can be created?
 -> Created 4 design docs: `api-specification.md`, `security-matrix.md`, `frontend-architecture.md`, `testing-strategy.md`.
 
-===============================
-4th Jan: 
 - Expense types and related GL codes will be back filled.
 -> Removed API endpoints for creating/updating these. Updated Milestone 1 to include specific seeding scripts.
 
 - Any user with approver role should be able see all the expenses and approve them.
 -> Updated Security Matrix and API Spec to remove strict role-to-step assignment. Any 'Approver' can act on any pending expense.
 
-- shall we add storybook tests for uio components?
+- shall we add storybook tests for ui components?
 -> Added Storybook Interaction Tests to `testing-strategy.md` and `milestone-1.md`.
 
 - NO API required for create or update Expense types and GL codes
 -> Confirmed removal of these endpoints from API Spec.
+
+- Think of NFR
+-> Created `docs/nfr.md` covering Performance, Security, Reliability, Scalability, Observability, and Usability.
 
