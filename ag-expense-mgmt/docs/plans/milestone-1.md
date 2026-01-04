@@ -17,10 +17,6 @@
     - [x] Setup Zod for validation.
     - [x] Setup Jest & React Testing Library.
     - [x] *Test*: Create a sample unit test to verify Jest setup.
-    - [x] Setup Storybook.
-    - [x] Configure `storybook-addon-interactions` for play functions.
-    - [x] Configure `storybook-addon-a11y` for Accessibility testing (NFR).
-    - [ ] *Test*: Create a sample Story with interaction test (e.g., clicking a button).
 - [x] **1.3.1**: Observability Setup.
     - [x] Implement Structured Logger (JSON format with RequestId/TenantId) (NFR).
     - [x] *Test*: Verify logs appear in console/output.
@@ -52,7 +48,6 @@
 
 ## Deliverables
 - Deployed Next.js App URL.
-- Local Storybook URL.
 - Working Login Page with Tests.
 - Database connected.
 
