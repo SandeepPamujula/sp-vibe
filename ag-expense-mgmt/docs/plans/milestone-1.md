@@ -8,7 +8,7 @@
 ## Tasks
 
 ### Infrastructure (CDK)
-- [ ] **1.1**: Initialize CDK project in `infra/`.
+- [x] **1.1**: Initialize CDK project in `infra/`.
 - [ ] **1.1.1**: Define `NextJsStack` (Lambda/S3/CF for Next.js).
 - [ ] **1.1.2**: Define `StorageStack` (S3 for documents).
 - [ ] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
@@ -61,3 +61,5 @@
 - **User Prompt**: "add CI/CD" -> Added Task 1.1.5.
 - **User Prompt**: "Impelment Global Error Handler" -> Added Task 1.2.x.
 - **User Prompt**: "differ StorageStack" -> Moved Task 1.1.2 to Milestone 3.
+- **User Prompt**: "implement task 1.1" -> Initialized CDK project, verified synthesis, and marked Task 1.1 as complete.
+- **User Prompt**: "update gitignore to avoid temp files" -> Updated `infra/.gitignore` to exclude standard temporary and build files.
