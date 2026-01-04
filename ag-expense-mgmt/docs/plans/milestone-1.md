@@ -13,11 +13,14 @@
 - [ ] **1.1.2**: Define `StorageStack` (S3 for documents).
 - [ ] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
 - [ ] **1.1.4**: *Test*: Verify CDK synthesis and stack structure (`cdk synth`).
+- [ ] **1.1.5**: Setup CI/CD Pipeline (GitHub Actions).
+    - [ ] Create `.github/workflows/ci.yml` (Build, Test, Lint).
 
 ### Application Core (Next.js)
 - [ ] **1.2**: Initialize Next.js project.
     - [ ] Setup TypeScript, TailwindCSS, ESLint, Prettier.
     - [ ] Configure Atomic Design structure (`components/atoms`, etc).
+    - [ ] Implement `APIResponse` wrapper and Global Error Handler.
     - [ ] *Test*: Verify build (`npm run build`).
 - [ ] **1.3**: Configure Libraries.
     - [ ] Setup Zod for validation.
@@ -45,4 +48,7 @@
 - Database connected.
 
 ## Execution Log
-*(Prompt history and completion notes will be added here)*
+- **User Prompt**: "add tests for each task" -> Added testing sub-tasks to all items.
+- **User Prompt**: "add CI/CD" -> Added Task 1.1.5.
+- **User Prompt**: "Impelment Global Error Handler" -> Added Task 1.2.x.
+- **User Prompt**: "differ StorageStack" -> Moved Task 1.1.2 to Milestone 3.

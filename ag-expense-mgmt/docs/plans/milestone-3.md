@@ -6,6 +6,11 @@
 
 ## Tasks
 
+### Infrastructure (CDK)
+- [ ] **3.0**: Define `StorageStack` (S3 Bucket for Invoices).
+    - [ ] Configure CORS for upload.
+    - [ ] *Test*: Verify Bucket creation.
+
 ### Frontend (Components)
 - [ ] **3.1**: Create Reusable Atoms/Molecules.
     - [ ] `DatePicker` component.
@@ -28,10 +33,12 @@
     - [ ] **3.4.3**: Evaluator Logic.
         - Loop steps, check `amount < threshold`.
     - [ ] **3.4.4**: Save Expense.
+    - [ ] **3.4.5**: *Feature*: Handle Resubmission (Update existing vs Create new).
+        - If `id` provided and status is `REJECTED`, update fields and reset status to `SUBMITTED`.
     - [ ] *Test*: Unit test Workflow Evaluator (Critical Path).
 - [ ] **3.5**: Notifications.
     - [ ] Integrate SES (or Mock Email Logger).
     - [ ] Trigger on successful submission.
 
 ## Execution Log
-*(Prompt history and completion notes will be added here)*
+- **User Prompt**: "if the approver rejects, admin should be able to edit and resubmit" -> Added Task 3.4.5 (Handle Resubmission) and updated Workflow Diagram.

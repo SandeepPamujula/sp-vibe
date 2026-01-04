@@ -120,6 +120,35 @@ erDiagram
 ## 4. Workflows
 
 ### 4.1 Expense Submission Logic
+```mermaid
+flowchart TD
+    Start((Start)) --> Submit[Facility Admin Submits Expense]
+    Submit --> Identify[Identify Expense Type & Workflow]
+    Identify --> CheckStep{Check Workflow Steps}
+    
+    CheckStep -->|Step Found| CheckThreshold{Amount >= Threshold?}
+    
+    CheckThreshold -- No --> Skip[Skip Step / Auto-Approve]
+    Skip --> CheckStep
+    
+    CheckThreshold -- Yes --> Pending[Status: PENDING_APPROVAL]
+    Pending --> Notify[Notify Approver]
+    Notify --> ApprovalAction{Approver Action}
+    
+    ApprovalAction -- Approve --> Approved[Status: APPROVED]
+    ApprovalAction -- Reject --> Rejected[Status: REJECTED]
+    
+    Rejected -- Edit & Resubmit --> Submit
+    
+    CheckStep -- No More Steps --> Approved
+    
+    Approved --> UpdateGL[Update GL / History]
+    Rejected --> UpdateHistory[Update History]
+    
+    UpdateGL --> End((End))
+    UpdateHistory --> End
+```
+
 1. Facility Admin fills form (Client-side Zod validation).
 2. Uploads Invoice.
 3. Submits to Backend.

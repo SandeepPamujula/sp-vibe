@@ -29,4 +29,5 @@
     - [ ] *Test*: Integration test (API returns correct JSON).
 
 ## Execution Log
-*(Prompt history and completion notes will be added here)*
+- **User Prompt**: "Expense type and gl-code collections should be created" -> Added Schema definitions and Seeding tasks.
+- **User Prompt**: "each tenant can have different workflows" -> Added Workflow Schema tasks.

@@ -32,7 +32,7 @@ Use mongodb for DB.
 - **Code Quality**: ESLint, Prettier
 
 Good job so far. Now Create a plan for multiple milestones and each milestone have multiple tasks to be implemented. add incremental numbers to each task.
-split into multiple milestones and each milestone have multiple tasks to be implemented.
+split into multiple milestone file and each milestone have multiple tasks to be implemented.
 ========================
 Create ER diagram for the database.
 Expense type and gl-code collections should be created. user should be able to select expense type while submitting an expense. 
@@ -42,4 +42,8 @@ isFinalStep can be added to workflow_step
 
 ========================
 use atomic design to create components.
+
+I like to implement the features step by step using milestone tasks. we need to add tests for each task. add prompt history in each milestone file once the task is completed.
+===============================
+4th Jan: review all the milestones and suggest for any changes
 
