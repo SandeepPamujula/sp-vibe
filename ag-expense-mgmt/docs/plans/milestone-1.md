@@ -9,8 +9,8 @@
 
 ### Infrastructure (CDK)
 - [x] **1.1**: Initialize CDK project in `infra/`.
-- [ ] **1.1.1**: Define `NextJsStack` (Lambda/S3/CF for Next.js).
-- [ ] **1.1.2**: Define `StorageStack` (S3 for documents).
+- [x] **1.1.1**: Define `NextJsStack` (Lambda/S3/CF for Next.js).
+- [x] **1.1.2**: Define `StorageStack` (S3 for documents).
 - [ ] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
 - [ ] **1.1.4**: *Test*: Verify CDK synthesis and stack structure (`cdk synth`).
 - [ ] **1.1.5**: Setup CI/CD Pipeline (GitHub Actions).
@@ -62,4 +62,5 @@
 - **User Prompt**: "Impelment Global Error Handler" -> Added Task 1.2.x.
 - **User Prompt**: "differ StorageStack" -> Moved Task 1.1.2 to Milestone 3.
 - **User Prompt**: "implement task 1.1" -> Initialized CDK project, verified synthesis, and marked Task 1.1 as complete.
-- **User Prompt**: "Option A is fine. however, i like to know the tradeoffs" -> Documented decision for Next.js Monolith in `docs/design/architecture-decision-001-deployment-strategy.md` and explained trade-offs.
+- [x] **User Prompt**: "Option A is fine. however, i like to know the tradeoffs" -> Documented decision for Next.js Monolith in `docs/design/architecture-decision-001-deployment-strategy.md` and explained trade-offs.
+- **User Prompt**: "implement task 1.1.1 and 1.1.2" -> Defined `NextJsStack` and `StorageStack`, and created placeholder `app` directory to enable CDK synthesis.
