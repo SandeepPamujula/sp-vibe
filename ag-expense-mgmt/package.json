@@ -1,0 +1,23 @@
+{
+    "name": "ag-expense-mgmt",
+    "version": "0.1.0",
+    "private": true,
+    "workspaces": [
+        "web",
+        "infra"
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "build:web": "(cd web && npm run build && npx -y @opennextjs/aws@latest build) && npm run clean:symlinks",
+        "clean:symlinks": "find web/.open-next -type l -exec sh -c 'for l; do [ -e \"$l\" ] || rm \"$l\"; done' sh {} +",
+        "build:infra": "npm run build --workspace=infra",
+        "test": "npm run test --workspaces",
+        "synth": "npm run build:web && npm run build:infra && npm run synth --workspace=infra",
+        "diff": "npm run build:web && npm run build:infra && npm run diff --workspace=infra",
+        "deploy": "npm run build:web && npm run build:infra && npm run deploy --workspace=infra",
+        "deploy:dev": "npm run build:web && npm run build:infra && npm run deploy:dev --workspace=infra",
+        "deploy:prod": "npm run build:web && npm run build:infra && npm run deploy:prod --workspace=infra",
+        "destroy": "npm run destroy --workspace=infra",
+        "bootstrap": "npm run bootstrap --workspace=infra"
+    }
+}
