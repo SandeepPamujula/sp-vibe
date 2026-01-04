@@ -58,9 +58,21 @@ npm test            # Run Jest unit tests
 ```bash
 npm run synth       # Synthesize CloudFormation template
 npm run diff        # Compare deployed stack with current state
-npm run deploy      # Deploy all stacks (auto-approve for dev)
-npm run deploy:prod # Deploy with approval prompts (for production)
+npm run deploy      # Deploy all stacks (auto-approve)
+npm run deploy:dev  # Deploy to development environment (auto-approve)
+npm run deploy:prod # Deploy to production environment (requires approval)
 npm run destroy     # Destroy all stacks
+npm run bootstrap   # Bootstrap CDK in AWS account (one-time setup)
+```
+
+### From Root Directory (Recommended)
+The root directory provides orchestrated scripts that build both web and infra:
+```bash
+npm run deploy:dev  # Build web + infra, then deploy to dev
+npm run deploy:prod # Build web + infra, then deploy to prod
+npm run synth       # Build infra, then synthesize
+npm run diff        # Build infra, then show differences
+npm run bootstrap   # Bootstrap CDK environment
 ```
 
 ### Direct CDK Commands
@@ -199,9 +211,9 @@ Security features included:
 
 1. ✅ Task 1.1: Initialize CDK project
 2. ✅ Task 1.1.1: Define NextJsStack
-3. ⏳ Task 1.1.2: Define StorageStack (Milestone 3)
+3. ✅ Task 1.1.2: Define StorageStack
 4. ✅ Task 1.1.3: Configure Deployment Scripts
-5. ✅ Task 1.1.4: Test CDK synthesis
+5. ⏳ Task 1.1.4: Test CDK synthesis
 6. ⏳ Task 1.1.5: Setup CI/CD Pipeline
 
 ## Resources

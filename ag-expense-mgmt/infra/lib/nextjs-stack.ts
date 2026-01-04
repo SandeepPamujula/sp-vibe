@@ -18,21 +18,26 @@ export class NextJsStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
+        // Get environment from context (dev, staging, prod)
+        const environment = this.node.tryGetContext('environment') || 'dev';
+        const isProd = environment === 'prod';
+
         // Deploy Next.js application
         this.nextjs = new Nextjs(this, 'ExpenseManagementApp', {
-            // Path to Next.js app (will be created in milestone 1.2)
+            // Path to Next.js app
             nextjsPath: '../web',
 
             // Environment variables for the Next.js app
             environment: {
-                NODE_ENV: 'production',
+                NODE_ENV: isProd ? 'production' : 'development',
+                NEXT_PUBLIC_ENV: environment,
             },
 
-            // Skip build for now since app doesn't exist yet
-            skipBuild: true,
-
-            // Reduce build output
+            // Build configuration
             quiet: false,
+
+            // Skip building Next.js app during CDK synth (run it separately)
+            skipBuild: true,
         });
 
         // Store URL for outputs
@@ -42,19 +47,19 @@ export class NextJsStack extends cdk.Stack {
         new cdk.CfnOutput(this, 'NextJsAppUrl', {
             value: this.nextjsUrl,
             description: 'CloudFront URL for the Next.js application',
-            exportName: 'ExpenseManagementAppUrl',
+            exportName: `ExpenseManagementAppUrl-${environment}`,
         });
 
         // Output the CloudFront Distribution ID
-        // new cdk.CfnOutput(this, 'DistributionId', {
-        //     value: this.nextjs.distribution.distributionId,
-        //     description: 'CloudFront Distribution ID',
-        //     exportName: 'ExpenseManagementDistributionId',
-        // });
+        new cdk.CfnOutput(this, 'DistributionId', {
+            value: this.nextjs.distribution.distributionId,
+            description: 'CloudFront Distribution ID',
+            exportName: `ExpenseManagementDistributionId-${environment}`,
+        });
 
         // Add tags for resource management
         cdk.Tags.of(this).add('Project', 'ExpenseManagement');
         cdk.Tags.of(this).add('Stack', 'NextJs');
-        cdk.Tags.of(this).add('Environment', props?.env?.account || 'dev');
+        cdk.Tags.of(this).add('Environment', environment);
     }
 }

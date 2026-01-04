@@ -7,11 +7,16 @@
         "infra"
     ],
     "scripts": {
-        "synth": "npm run synth --workspace=infra",
-        "deploy": "npm run deploy --workspace=infra",
-        "deploy:prod": "npm run deploy:prod --workspace=infra",
-        "destroy": "npm run destroy --workspace=infra",
         "build": "npm run build --workspaces",
-        "test": "npm run test --workspaces"
+        "build:web": "npm run build --workspace=web && cd web && npx -y @opennextjs/aws@latest build",
+        "build:infra": "npm run build --workspace=infra",
+        "test": "npm run test --workspaces",
+        "synth": "npm run build:web && npm run build:infra && npm run synth --workspace=infra",
+        "diff": "npm run build:web && npm run build:infra && npm run diff --workspace=infra",
+        "deploy": "npm run build:web && npm run build:infra && npm run deploy --workspace=infra",
+        "deploy:dev": "npm run build:web && npm run build:infra && npm run deploy:dev --workspace=infra",
+        "deploy:prod": "npm run build:web && npm run build:infra && npm run deploy:prod --workspace=infra",
+        "destroy": "npm run destroy --workspace=infra",
+        "bootstrap": "npm run bootstrap --workspace=infra"
     }
 }

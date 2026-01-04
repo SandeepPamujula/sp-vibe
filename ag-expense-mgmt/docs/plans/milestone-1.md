@@ -45,8 +45,8 @@
 - [x] **1.1**: Initialize CDK project in `infra/`.
 - [x] **1.1.1**: Define `NextJsStack` (Lambda/S3/CF for Next.js).
 - [x] **1.1.2**: Define `StorageStack` (S3 for documents).
-- [ ] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
-- [ ] **1.1.4**: *Test*: Verify CDK synthesis and stack structure (`cdk synth`).
+- [x] **1.1.3**: Configure Deployment Scripts (`npm run deploy`).
+- [x] **1.1.4**: *Test*: Verify CDK synthesis and stack structure (`cdk synth`).
 - [ ] **1.1.5**: Setup CI/CD Pipeline (GitHub Actions).
     - [ ] Create `.github/workflows/ci.yml` (Build, Test, Lint).
 
@@ -66,3 +66,9 @@
 - **User Prompt**: "implement task 1.1.1 and 1.1.2" -> Defined `NextJsStack` and `StorageStack`, and created placeholder `app` directory to enable CDK synthesis.
 - **User Prompt**: "move 1.1 and its subtasks to the end" -> Rearranged tasks to prioritize Application Core and Auth/DB implementation.
 - **User Prompt**: "implement 1.2" -> Initialized Next.js project with TypeScript, TailwindCSS, ESLint, and Prettier. Configured Atomic Design structure (atoms/molecules/organisms/templates). Implemented APIResponse wrapper and Global Error Handler. Verified build succeeds.
+- **User Prompt**: "why source code and package.json is present in /app instead of root?" -> Explained monorepo structure with separate workspaces for web application and infrastructure.
+- **User Prompt**: "suggest a different name for app folder" -> Suggested `web` as the new name for better clarity and industry standard alignment.
+- **User Prompt**: "yes, web looks good" -> Renamed `app/` to `web/` and updated all references in package.json files and CDK stack configuration. Verified build succeeds.
+- **User Prompt**: "implement task 1.1.3" -> Configured orchestrated deployment scripts in root `package.json`. Updated `infra` stacks to support environment context (dev/prod). Created `docs/deployment-guide.md`. Fixed Next.js build issue with `global-error.tsx`. Verified CDK synthesis with OpenNext integration.
+- **User Prompt**: "ignore temp files" -> Updated `.gitignore` files at root, `web/`, and `infra/` to exclude `.open-next/`, `cdk.out/`, and compiled JS artifacts.
+- **User Prompt**: "display health api data on inital page" -> Re-designed the landing page with a premium UI and integrated live health status fetching from the system API.

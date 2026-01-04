@@ -1,7 +1,10 @@
-/infra/bin/*.js
+/bin/*.js
+/lib/*.js
+/test/*.js
 *.js
 !jest.config.js
 *.d.ts
+tsconfig.tsbuildinfo
 node_modules
 
 # CDK asset staging directory

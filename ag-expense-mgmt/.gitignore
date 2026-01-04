@@ -23,6 +23,8 @@ jspm_packages/
 dist/
 build/
 .next/
+.open-next/
+cdk.out/
 out/
 coverage/
 

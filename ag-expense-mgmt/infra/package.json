@@ -10,10 +10,12 @@
     "test": "jest",
     "cdk": "cdk",
     "synth": "cdk synth",
-    "deploy": "cdk deploy --all --require-approval never",
-    "deploy:prod": "cdk deploy --all --require-approval broadening",
     "diff": "cdk diff",
-    "destroy": "cdk destroy --all"
+    "deploy": "cdk deploy --all --require-approval never",
+    "deploy:dev": "cdk deploy --all --require-approval never --context environment=dev",
+    "deploy:prod": "cdk deploy --all --require-approval broadening --context environment=prod",
+    "destroy": "cdk destroy --all",
+    "bootstrap": "cdk bootstrap"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
