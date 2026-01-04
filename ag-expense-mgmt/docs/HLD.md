@@ -156,7 +156,8 @@ flowchart TD
 5. **Workflow Evaluation**:
     - Iterate through `WorkflowSteps` ordered by `stepOrder`.
     - Check `if (expense.amount >= step.thresholdAmount)`.
-    - If true, set `currentStepOrder` = this step, status = `PENDING_APPROVAL`, assigned to `step.approverRole`.
+    - If true, set `currentStepOrder` = this step, status = `PENDING_APPROVAL`.
+    - (Any user with `Approver` role can now act on this).
     - If false, skip step.
     - If all steps are skipped (auto-approve), status = `APPROVED`.
 6. Saves to MongoDB.

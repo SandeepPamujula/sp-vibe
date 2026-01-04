@@ -27,6 +27,8 @@
     - [ ] Setup Jest & React Testing Library.
     - [ ] *Test*: Create a sample unit test to verify Jest setup.
     - [ ] Setup Storybook.
+    - [ ] Configure `storybook-addon-interactions` for play functions.
+    - [ ] *Test*: Create a sample Story with interaction test (e.g., clicking a button).
 
 ### Authentication & Database
 - [ ] **1.4**: Implement Mock Authentication.
@@ -37,9 +39,10 @@
     - [ ] Configure Mongoose Connection.
     - [ ] Define `Tenant` and `User` Schemas.
     - [ ] *Test*: Unit/Integration test for Database connection (using `mongodb-memory-server` if possible, or mock).
-- [ ] **1.6**: Seeding.
-    - [ ] Create seed script.
-    - [ ] *Test*: Verify seed script runs without error.
+- [ ] **1.6**: Seeding & Backfilling.
+    - [ ] Create seed script for Reference Data (Expense Types, GL Codes - Backfilling support).
+    - [ ] Create seed script for Tenants/Users.
+    - [ ] *Test*: Verify seed script populates correct data in DB.
 
 ## Deliverables
 - Deployed Next.js App URL.
