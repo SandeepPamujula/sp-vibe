@@ -20,14 +20,14 @@
 - [x] **1.3.1**: Observability Setup.
     - [x] Implement Structured Logger (JSON format with RequestId/TenantId) (NFR).
     - [x] *Test*: Verify logs appear in console/output.
-- [ ] **1.3.2**: Security Headers.
-    - [ ] Configure strict CSP and Security Headers in `next.config.js` (NFR).
+- [x] **1.3.2**: Security Headers.
+    - [x] Configure strict CSP and Security Headers in `next.config.js` (NFR).
 
 ### Authentication & Database
-- [ ] **1.4**: Implement Mock Authentication.
-    - [ ] Create `AuthContext`.
-    - [ ] Build Login Page with Role Selection.
-    - [ ] *Test*: Unit test for `AuthContext` (Login/Logout logic).
+- [x] **1.4**: Implement Mock Authentication.
+    - [x] Create `AuthContext`.
+    - [x] Build Login Page with Role Selection.
+    - [x] *Test*: Unit test for `AuthContext` (Login/Logout logic).
 - [ ] **1.5**: Database Setup.
     - [ ] Configure Mongoose Connection.
     - [ ] Define `Tenant` and `User` Schemas.
@@ -71,3 +71,6 @@
 - **User Prompt**: "Health api details are not shown using cloudfront url..." -> Fixed production health check by dynamically determining the base URL using request headers (`host` and `x-forwarded-proto`).
 - **User Prompt**: "update prompt history" -> Created `docs/history/milestone-1.md` and updated `initial-prompt.md` with the latest progress. Marked Task 1.3 library setup as complete.
 - **User Prompt**: "implement task 1.3.1" -> Implemented structured logger using Pino with JSON format and context support (RequestId/TenantId). Integrated logger into global error handler and health API. Verified with unit and output tests.
+- **User Prompt**: "remove storybook support from the project" -> Completely removed Storybook dependencies, configurations, boilerplate components, and related Vitest/Playwright setups. Verified clean Next.js production build and linting.
+- **User Prompt**: "implement task 1.3.2" -> Configured strict security headers (CSP, HSTS, X-Content-Type-Options, etc.) in `next.config.ts`. Verified with a successful production build.
+- **User Prompt**: "implement task 1.4" -> Implemented `AuthContext` with mock login/logout, session persistence, and role-based access. Created a premium Login Page with role selection (`Facility Admin` and `Approver`). Updated mock credentials to use `sandeeppamujula@gmail.com` and `reachsandeepkp@gmail.com`. Verified with unit tests.
