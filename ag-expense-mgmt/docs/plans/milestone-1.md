@@ -28,10 +28,10 @@
     - [x] Create `AuthContext`.
     - [x] Build Login Page with Role Selection.
     - [x] *Test*: Unit test for `AuthContext` (Login/Logout logic).
-- [ ] **1.5**: Database Setup.
-    - [ ] Configure Mongoose Connection.
-    - [ ] Define `Tenant` and `User` Schemas.
-    - [ ] *Test*: Unit/Integration test for Database connection (using `mongodb-memory-server` if possible, or mock).
+- [x] **1.5**: Database Setup.
+    - [x] Configure Mongoose Connection.
+    - [x] Define `Tenant` and `User` Schemas.
+    - [x] *Test*: Unit/Integration test for Database connection (using `mongodb-memory-server` if possible, or mock).
 - [ ] **1.6**: Seeding & Backfilling.
     - [ ] Create seed script for Reference Data (Expense Types, GL Codes - Backfilling support).
     - [ ] Create seed script for Tenants/Users.
@@ -74,3 +74,5 @@
 - **User Prompt**: "remove storybook support from the project" -> Completely removed Storybook dependencies, configurations, boilerplate components, and related Vitest/Playwright setups. Verified clean Next.js production build and linting.
 - **User Prompt**: "implement task 1.3.2" -> Configured strict security headers (CSP, HSTS, X-Content-Type-Options, etc.) in `next.config.ts`. Verified with a successful production build.
 - **User Prompt**: "implement task 1.4" -> Implemented `AuthContext` with mock login/logout, session persistence, and role-based access. Created a premium Login Page with role selection (`Facility Admin` and `Approver`). Updated mock credentials to use `sandeeppamujula@gmail.com` and `reachsandeepkp@gmail.com`. Verified with unit tests.
+- [x] **User Prompt**: "implement task 1.5" -> Configured Mongoose connection with caching for Next.js. Defined `Tenant` and `User` schemas with multi-tenant support. Verified setup with unit tests using `mongodb-memory-server`.
+
