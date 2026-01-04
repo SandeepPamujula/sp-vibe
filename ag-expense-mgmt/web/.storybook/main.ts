@@ -21,6 +21,8 @@ const config: StorybookConfig = {
     getAbsolutePath('@storybook/addon-vitest'),
     getAbsolutePath('@storybook/addon-a11y'),
     getAbsolutePath('@storybook/addon-docs'),
+    getAbsolutePath('@storybook/addon-essentials'),
+    getAbsolutePath('@storybook/addon-interactions'),
     getAbsolutePath('@storybook/addon-onboarding')
   ],
   "framework": getAbsolutePath('@storybook/nextjs-vite'),

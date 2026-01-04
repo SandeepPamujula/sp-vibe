@@ -13,13 +13,13 @@
     - [x] Configure Atomic Design structure (`components/atoms`, etc).
     - [x] Implement `APIResponse` wrapper and Global Error Handler.
     - [x] *Test*: Verify build (`npm run build`).
-- [ ] **1.3**: Configure Libraries.
-    - [ ] Setup Zod for validation.
-    - [ ] Setup Jest & React Testing Library.
-    - [ ] *Test*: Create a sample unit test to verify Jest setup.
-    - [ ] Setup Storybook.
-    - [ ] Configure `storybook-addon-interactions` for play functions.
-    - [ ] Configure `storybook-addon-a11y` for Accessibility testing (NFR).
+- [x] **1.3**: Configure Libraries.
+    - [x] Setup Zod for validation.
+    - [x] Setup Jest & React Testing Library.
+    - [x] *Test*: Create a sample unit test to verify Jest setup.
+    - [x] Setup Storybook.
+    - [x] Configure `storybook-addon-interactions` for play functions.
+    - [x] Configure `storybook-addon-a11y` for Accessibility testing (NFR).
     - [ ] *Test*: Create a sample Story with interaction test (e.g., clicking a button).
 - [ ] **1.3.1**: Observability Setup.
     - [ ] Implement Structured Logger (JSON format with RequestId/TenantId) (NFR).
@@ -74,3 +74,4 @@
 - **User Prompt**: "display health api data on inital page" -> Re-designed the landing page with a premium UI and integrated live health status fetching from the system API.
 - **User Prompt**: "unable to npm run deploy:dev Error: ENOENT..." -> Fixed OpenNext broken symlinks issue. Combined CDK asset exclusions with a post-build cleanup script. Documented RCA in `docs/troubleshooting/rca-001-opennext-symlink-enoent.md`.
 - **User Prompt**: "Health api details are not shown using cloudfront url..." -> Fixed production health check by dynamically determining the base URL using request headers (`host` and `x-forwarded-proto`).
+- **User Prompt**: "update prompt history" -> Created `docs/history/milestone-1.md` and updated `initial-prompt.md` with the latest progress. Marked Task 1.3 library setup as complete.
