@@ -32,10 +32,10 @@
     - [x] Configure Mongoose Connection.
     - [x] Define `Tenant` and `User` Schemas.
     - [x] *Test*: Unit/Integration test for Database connection (using `mongodb-memory-server` if possible, or mock).
-- [ ] **1.6**: Seeding & Backfilling.
-    - [ ] Create seed script for Reference Data (Expense Types, GL Codes - Backfilling support).
-    - [ ] Create seed script for Tenants/Users.
-    - [ ] *Test*: Verify seed script populates correct data in DB.
+- [x] **1.6**: Seeding & Backfilling.
+    - [x] Create seed script for Reference Data (Expense Types, GL Codes - Backfilling support).
+    - [x] Create seed script for Tenants/Users.
+    - [x] *Test*: Verify seed script populates correct data in DB.
 
 ### Infrastructure (CDK)
 - [x] **1.1**: Initialize CDK project in `infra/`.
@@ -75,4 +75,5 @@
 - **User Prompt**: "implement task 1.3.2" -> Configured strict security headers (CSP, HSTS, X-Content-Type-Options, etc.) in `next.config.ts`. Verified with a successful production build.
 - **User Prompt**: "implement task 1.4" -> Implemented `AuthContext` with mock login/logout, session persistence, and role-based access. Created a premium Login Page with role selection (`Facility Admin` and `Approver`). Updated mock credentials to use `sandeeppamujula@gmail.com` and `reachsandeepkp@gmail.com`. Verified with unit tests.
 - [x] **User Prompt**: "implement task 1.5" -> Configured Mongoose connection with caching for Next.js. Defined `Tenant` and `User` schemas with multi-tenant support. Verified setup with unit tests using `mongodb-memory-server`.
+- [x] **User Prompt**: "implement task 1.6 from @[ag-expense-mgmt/docs/plans/milestone-1.md]" -> Implemented database seeding script for Tenants, Users, GL Codes, and Expense Types. Added backfilling support via upserts. Configured Jest to handle ESM dependencies. Used `tsx` for seeding script to ensure better ESM compatibility. Verified with unit tests.
 
