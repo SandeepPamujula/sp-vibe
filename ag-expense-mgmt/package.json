@@ -8,7 +8,8 @@
     ],
     "scripts": {
         "build": "npm run build --workspaces",
-        "build:web": "npm run build --workspace=web && cd web && npx -y @opennextjs/aws@latest build",
+        "build:web": "(cd web && npm run build && npx -y @opennextjs/aws@latest build) && npm run clean:symlinks",
+        "clean:symlinks": "find web/.open-next -type l -exec sh -c 'for l; do [ -e \"$l\" ] || rm \"$l\"; done' sh {} +",
         "build:infra": "npm run build --workspace=infra",
         "test": "npm run test --workspaces",
         "synth": "npm run build:web && npm run build:infra && npm run synth --workspace=infra",

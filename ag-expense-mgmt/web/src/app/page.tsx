@@ -1,19 +1,28 @@
 import Image from "next/image";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 async function getHealthData() {
   try {
-    // Determine base URL based on environment
-    // Use an absolute URL for fetch, but handle build-time environment where server is not yet running
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = headersList.get('x-forwarded-proto') || 'https';
+
+    // Determine base URL based on environment or request headers
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (host ? `${protocol}://${host}` : 'http://localhost:3000');
+
+    console.log(`Fetching health data from: ${baseUrl}/api/health`);
 
     const res = await fetch(`${baseUrl}/api/health`, {
       cache: 'no-store',
       next: { revalidate: 0 }
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`Health check failed with status: ${res.status}`);
+      return null;
+    }
     const json = await res.json();
     return json.success ? json.data : null;
   } catch (error) {
@@ -47,7 +56,7 @@ export default async function Home() {
               priority
             />
             <h1 className="bg-gradient-to-r from-black to-zinc-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent dark:from-white dark:to-zinc-500 sm:text-5xl">
-              Expense Management
+              SP Expense Management
             </h1>
           </div>
 

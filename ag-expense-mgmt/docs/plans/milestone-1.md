@@ -72,3 +72,5 @@
 - **User Prompt**: "implement task 1.1.3" -> Configured orchestrated deployment scripts in root `package.json`. Updated `infra` stacks to support environment context (dev/prod). Created `docs/deployment-guide.md`. Fixed Next.js build issue with `global-error.tsx`. Verified CDK synthesis with OpenNext integration.
 - **User Prompt**: "ignore temp files" -> Updated `.gitignore` files at root, `web/`, and `infra/` to exclude `.open-next/`, `cdk.out/`, and compiled JS artifacts.
 - **User Prompt**: "display health api data on inital page" -> Re-designed the landing page with a premium UI and integrated live health status fetching from the system API.
+- **User Prompt**: "unable to npm run deploy:dev Error: ENOENT..." -> Fixed OpenNext broken symlinks issue. Combined CDK asset exclusions with a post-build cleanup script. Documented RCA in `docs/troubleshooting/rca-001-opennext-symlink-enoent.md`.
+- **User Prompt**: "Health api details are not shown using cloudfront url..." -> Fixed production health check by dynamically determining the base URL using request headers (`host` and `x-forwarded-proto`).

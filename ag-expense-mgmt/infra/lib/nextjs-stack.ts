@@ -38,6 +38,15 @@ export class NextJsStack extends cdk.Stack {
 
             // Skip building Next.js app during CDK synth (run it separately)
             skipBuild: true,
+
+            // Overrides to handle broken symlinks during asset staging
+            overrides: {
+                nextjsServer: {
+                    sourceCodeAssetProps: {
+                        exclude: ['**/node_modules/.bin'],
+                    },
+                },
+            },
         });
 
         // Store URL for outputs
