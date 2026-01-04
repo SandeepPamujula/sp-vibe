@@ -62,4 +62,4 @@
 - **User Prompt**: "Impelment Global Error Handler" -> Added Task 1.2.x.
 - **User Prompt**: "differ StorageStack" -> Moved Task 1.1.2 to Milestone 3.
 - **User Prompt**: "implement task 1.1" -> Initialized CDK project, verified synthesis, and marked Task 1.1 as complete.
-- **User Prompt**: "update gitignore to avoid temp files" -> Updated `infra/.gitignore` to exclude standard temporary and build files.
+- **User Prompt**: "Option A is fine. however, i like to know the tradeoffs" -> Documented decision for Next.js Monolith in `docs/design/architecture-decision-001-deployment-strategy.md` and explained trade-offs.
