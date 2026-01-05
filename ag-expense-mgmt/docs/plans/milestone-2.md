@@ -8,11 +8,11 @@
 ## Tasks
 
 ### Backend (Next.js API/Server Actions)
-- [ ] **2.1**: Define Mongoose Schemas.
-    - [ ] `GLCode` Schema.
-    - [ ] `ExpenseType` Schema.
-    - [ ] `Workflow` and `WorkflowStep` Schemas.
-    - [ ] *Test*: Unit tests for Schema validation.
+- [x] **2.1**: Define Mongoose Schemas.
+    - [x] `GLCode` Schema.
+    - [x] `ExpenseType` Schema.
+    - [x] `Workflow` and `WorkflowStep` Schemas.
+    - [x] *Test*: Unit tests for Schema validation.
 - [ ] **2.2**: Implement Seeding Logic.
     - [ ] Create `seed-master-data.ts` script.
     - [ ] Seed default GL Codes.
