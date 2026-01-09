@@ -358,15 +358,15 @@ const expenseHistoryData: NewExpenseHistory[] = [
 
 async function clearData() {
   console.log('🗑️  Clearing existing data...');
-  await db.delete(expenseAttachments);
-  await db.delete(expenseHistory);
-  await db.delete(expenseApprovals);
-  await db.delete(expenses);
-  await db.delete(workflowSteps);
-  await db.delete(expenseWorkflows);
-  await db.delete(glCodes);
-  await db.delete(users);
-  await db.delete(tenants);
+  // await db.delete(expenseAttachments);
+  // await db.delete(expenseHistory);
+  // await db.delete(expenseApprovals);
+  // await db.delete(expenses);
+  // await db.delete(workflowSteps);
+  // await db.delete(expenseWorkflows);
+  // await db.delete(glCodes);
+  // await db.delete(users);
+  // await db.delete(tenants);
   console.log('   ✓ Data cleared');
 }
 
